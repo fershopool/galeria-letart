@@ -178,9 +178,15 @@ html.js .entrada { position: fixed; inset: 0; }
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 16px 24px;
-  background: linear-gradient(to bottom, rgba(28, 28, 27, .9), rgba(28, 28, 27, 0));
-  color: var(--texto-claro);
+  padding: calc(16px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 16px max(24px, env(safe-area-inset-left));
+  /* Colores por sala: html[data-sala-activa] los cambia (ver bloque de salas al final) */
+  --cab-fondo: #1C1C1B;
+  --cab-texto: var(--texto-claro);
+  --cab-muted: var(--muted);
+  --cab-acento: var(--amarillo);
+  background: var(--cab-fondo);
+  color: var(--cab-texto);
+  transition: background-color .6s ease, color .6s ease;
 }
 
 .marca {
@@ -189,7 +195,7 @@ html.js .entrada { position: fixed; inset: 0; }
   font-size: 15px;
   letter-spacing: .14em;
   text-transform: uppercase;
-  color: var(--texto-claro);
+  color: var(--cab-texto);
   text-decoration: none;
   white-space: nowrap;
 }
@@ -209,7 +215,7 @@ html.js .entrada { position: fixed; inset: 0; }
   padding: 8px 0;
   background: none;
   border: 0;
-  color: var(--muted);
+  color: var(--cab-muted);
   font: 700 12px/1 var(--fuente);
   letter-spacing: .18em;
   text-transform: uppercase;
@@ -217,10 +223,10 @@ html.js .entrada { position: fixed; inset: 0; }
   border-bottom: 1px solid transparent;
   transition: color .2s, border-color .2s;
 }
-.indice-item:hover { color: var(--texto-claro); }
+.indice-item:hover { color: var(--cab-texto); }
 .indice-item[aria-current="true"] {
-  color: var(--texto-claro);
-  border-bottom-color: var(--amarillo);
+  color: var(--cab-texto);
+  border-bottom-color: var(--cab-acento);
 }
 
 .contador {
@@ -228,7 +234,7 @@ html.js .entrada { position: fixed; inset: 0; }
   font-size: 13px;
   letter-spacing: .2em;
   font-variant-numeric: tabular-nums;
-  color: var(--texto-claro);
+  color: var(--cab-texto);
 }
 
 .progreso {
@@ -461,6 +467,83 @@ html.js .entrada { position: fixed; inset: 0; }
 .linterna.activa { opacity: 1; }
 .en-contacto .linterna { opacity: 0 !important; }
 
+/* Controles táctiles: se muestran en las salas (no en portada, contacto ni con el visor) */
+.linterna-ui {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 45;
+  display: none;
+}
+.linterna-control {
+  width: 60px;
+  height: 60px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 241, 230, .5);
+  background: var(--crema);
+  color: var(--tinta);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  touch-action: none;            /* solo este control: el resto de la página sigue haciendo scroll */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  cursor: grab;
+}
+.linterna-control svg { width: 28px; height: 28px; }
+html.linterna-agarrada .linterna-control { background: var(--amarillo); }
+.linterna-pista {
+  position: absolute;
+  right: 0;
+  bottom: 72px;
+  white-space: nowrap;
+  padding: 10px 12px;
+  background: var(--crema);
+  color: var(--tinta);
+  font: 800 12px/1 var(--fuente);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+html.linterna-lista:not(.en-portada):not(.en-contacto):not(.visor-abierto) .linterna-ui { display: block; }
+
+.giro-ui {
+  position: fixed;
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 45;
+  display: none;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.giro-control {
+  min-height: 56px;
+  min-width: 56px;
+  padding: 0 18px;
+  border-radius: 28px;
+  border: 1px solid rgba(245, 241, 230, .5);
+  background: var(--crema);
+  color: var(--tinta);
+  font: 800 13px/1 var(--fuente);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
+  touch-action: manipulation;
+  cursor: pointer;
+}
+.giro-control[aria-pressed="true"] { background: var(--salvia); }
+.giro-control:disabled { opacity: .5; }
+.giro-aviso {
+  padding: 8px 12px;
+  background: var(--tinta);
+  color: var(--texto-claro);
+  border: 1px solid rgba(245, 241, 230, .3);
+  font-size: 13px;
+}
+html.giro-ok.linterna-lista:not(.en-portada):not(.en-contacto):not(.visor-abierto) .giro-ui { display: flex; }
+
 .cursor {
   position: fixed;
   left: 0;
@@ -505,6 +588,8 @@ html.cursor-custom #galeria * { cursor: none !important; }
   position: fixed;
   inset: 0;
   z-index: 100;
+  height: 100vh;
+  height: 100dvh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   background: var(--tinta);
@@ -515,8 +600,9 @@ html.cursor-custom #galeria * { cursor: none !important; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 24px;
+  padding: calc(14px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 14px max(24px, env(safe-area-inset-left));
 }
+.visor-cerrar { min-width: 44px; }
 .visor-contador {
   font-size: 13px;
   letter-spacing: .2em;
@@ -579,7 +665,7 @@ html.cursor-custom #galeria * { cursor: none !important; }
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 24px;
-  padding: 16px 24px 24px;
+  padding: 16px max(24px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left));
   border-top: 1px solid rgba(245, 241, 230, .14);
 }
 .visor-titulo {
@@ -591,7 +677,7 @@ html.cursor-custom #galeria * { cursor: none !important; }
   letter-spacing: .01em;
   text-transform: uppercase;
 }
-.visor-ficha { font-size: 15px; margin-bottom: 4px; }
+.visor-ficha { font-size: 15px; margin-bottom: 4px; overflow-wrap: anywhere; }
 .visor-nota { font-size: 14px; font-style: italic; color: var(--muted); }
 .visor-accion {
   display: grid;
@@ -653,13 +739,13 @@ html.cursor-custom #galeria * { cursor: none !important; }
 }
 
 @media (max-width: 799px) {
-  .linterna { display: none; }
+  .linterna { background: radial-gradient(circle clamp(180px, 52vw, 240px) at var(--x, 50%) var(--y, 50%), rgba(248, 245, 234, .14) 0%, rgba(0, 0, 0, 0) 65%, rgba(0, 0, 0, .72) 100%); }
 
   .cabecera {
     flex-wrap: wrap;
     row-gap: 6px;
-    padding: 12px 16px 6px;
-    background: var(--tinta);   /* sólido: el texto no se mezcla con las obras al pasar */
+    padding: calc(12px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 6px max(16px, env(safe-area-inset-left));
+    background: var(--cab-fondo);   /* sólido: el texto no se mezcla con las obras al pasar */
   }
   .indice { order: 3; width: 100%; gap: 18px; }
   .indice-item { font-size: 11px; letter-spacing: .14em; }
@@ -670,18 +756,19 @@ html.cursor-custom #galeria * { cursor: none !important; }
   .sala-contacto { padding: 120px 16px 80px; min-height: 100vh; min-height: 100dvh; }
   .contacto-acciones .btn { flex: 1 1 100%; }
 
-  .visor-barra { padding: 12px 16px; }
-  .visor-img {
-    max-height: calc(100vh - 360px);
-    max-height: calc(100dvh - 360px);
-  }
+  .visor-barra { padding: calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); }
+  .visor-zoom { height: 100%; }
+  .visor-img { max-height: 100%; }
   .visor-flecha { width: 44px; height: 44px; font-size: 24px; }
   .visor-ant { left: 8px; }
   .visor-sig { right: 8px; }
   .visor-info {
     grid-template-columns: 1fr;
     gap: 14px;
-    padding: 14px 16px 18px;
+    padding: 14px max(16px, env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    min-height: 0;
+    max-height: 42dvh;
+    overflow-y: auto;
   }
   .visor-titulo { font-size: 24px; }
   .visor-accion { justify-items: stretch; text-align: left; }
@@ -696,7 +783,7 @@ html:not(.modo-horizontal) .sala {
   min-height: 0;
   padding: 112px 16px 64px;
 }
-html:not(.modo-horizontal) .sala::before { display: none; }
+/* La decoración de pared (::before) también se ve en modo apilado: ver bloque de salas al final */
 html:not(.modo-horizontal) .sala-cabecera { position: sticky; top: 112px; align-self: flex-start; }
 html:not(.modo-horizontal) .sala-obras {
   flex: 1;
@@ -762,3 +849,280 @@ html:not(.js) .entrada { position: relative; }
   }
   .entrada-escarabajo { animation: none; }
 }
+
+/* ==========================================================================
+   Salas como cuartos de museo (solo CSS). Cada .sala[data-sala] es una
+   habitación: pared (fondo), decoración (::before), suelo (::after), marcos,
+   cédulas y cartela con sus propios colores. El .umbral antes de cada sala
+   es la puerta y lleva el rótulo «Sala I», «Sala II»…
+   ========================================================================== */
+.sala, .umbral {
+  --sala-texto: var(--texto-claro);
+  --sala-muted: var(--muted);
+  --sala-linea: rgba(245, 241, 230, .3);
+  --sala-cartela: #F8F5EA;
+  --sala-cartela-texto: #1C1C1B;
+  --sala-jamba: #1C1C1B;
+  --sala-jamba-texto: #F5F1E6;
+}
+.sala { background: var(--carbon-profundo); }
+.sala > * { position: relative; z-index: 1; }
+.sala::before,
+.sala::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.sala::before { top: 0; bottom: 0; height: auto; background: none; }
+.sala::after { bottom: 0; height: 16vh; }
+
+/* Umbral (puerta entre salas) */
+.umbral {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: clamp(56px, 7vw, 104px);
+  height: 100vh;
+  padding-top: 18vh;
+  background: var(--sala-jamba);
+  color: var(--sala-jamba-texto);
+  box-shadow: inset -14px 0 18px -14px rgba(0, 0, 0, .6);
+}
+.umbral-rotulo {
+  writing-mode: vertical-rl;
+  padding: 16px 9px;
+  background: var(--sala-cartela);
+  color: var(--sala-cartela-texto);
+  border: 1px solid var(--sala-linea);
+  font-family: var(--fuente);
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+html:not(.modo-horizontal) .umbral {
+  width: 100%;
+  height: 72px;
+  padding-top: 0;
+  align-items: center;
+  box-shadow: none;
+  border-bottom: 6px solid var(--sala-jamba);
+}
+html:not(.modo-horizontal) .umbral-rotulo { writing-mode: horizontal-tb; padding: 8px 14px; }
+
+/* Textos y cédulas comunes a todas las salas */
+html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); }
+.sala .cedula-num,
+.sala .cedula-medidas,
+.sala .cedula-nota { color: var(--sala-muted); }
+.sala .sala-titulo { color: var(--sala-texto); }
+.sala .sala-sub {
+  color: var(--sala-cartela-texto);
+  background: var(--sala-cartela);
+  border: 1px solid var(--sala-linea);
+  padding: 12px 7px;
+  text-decoration: none;
+}
+
+/* ---- Sala I · MASCOTAS: cálida, terracota, madera, huellas tenues ---- */
+.sala[data-sala="mascotas"], .umbral[data-sala="mascotas"] {
+  --sala-texto: #F5F1E6;
+  --sala-muted: #F2DFC6;
+  --sala-linea: rgba(245, 230, 210, .4);
+  --sala-cartela: #F3E6CF;
+  --sala-cartela-texto: #3B2418;
+  --sala-jamba: #4A2A18;
+  --sala-jamba-texto: #F3E6CF;
+}
+.sala[data-sala="mascotas"] {
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 214, 170, .16), rgba(255, 214, 170, 0) 70%),
+    linear-gradient(180deg, #A4553A 0%, #8F4830 100%);
+}
+.sala[data-sala="mascotas"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cg fill='%23FFD9B0' fill-opacity='.11'%3E%3Cellipse cx='58' cy='96' rx='16' ry='13'/%3E%3Ccircle cx='38' cy='74' r='6.5'/%3E%3Ccircle cx='56' cy='62' r='6.5'/%3E%3Ccircle cx='75' cy='66' r='6.5'/%3E%3Ccircle cx='84' cy='84' r='6.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 170px 170px;
+}
+.sala[data-sala="mascotas"]::after {
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .12) 0 2px, transparent 2px 170px),
+    linear-gradient(180deg, #9A643A, #6F4425);
+  border-top: 10px solid #4A2A18;   /* zócalo */
+}
+.sala[data-sala="mascotas"] .obra-marco {
+  background: repeating-linear-gradient(90deg, #6B4226 0 4px, #7F4F2C 4px 9px);
+  box-shadow: inset 0 0 0 2px #4A2C17, 0 40px 60px -28px rgba(40, 15, 5, .75);
+}
+
+/* ---- Sala II · NATURALEZA: invernadero salvia, hojas, luz cenital ---- */
+.sala[data-sala="naturaleza"], .umbral[data-sala="naturaleza"] {
+  --sala-texto: #F5F1E6;
+  --sala-muted: #D5E6C4;
+  --sala-linea: rgba(240, 248, 230, .35);
+  --sala-cartela: #F3F0DC;
+  --sala-cartela-texto: #1E3A24;
+  --sala-jamba: #24402A;
+  --sala-jamba-texto: #F3F0DC;
+}
+.sala[data-sala="naturaleza"] {
+  background:
+    radial-gradient(ellipse 60% 55% at 50% -8%, rgba(239, 228, 138, .3), rgba(239, 228, 138, 0) 70%),
+    linear-gradient(180deg, #3D6638 0%, #2A4D2A 100%);
+}
+.sala[data-sala="naturaleza"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='%23CFE3B5' fill-opacity='.13'%3E%3Cpath d='M30 190C30 100 90 40 190 28C188 128 128 190 30 190Z'/%3E%3Cpath d='M120 200C112 150 130 118 176 104C180 150 160 186 120 200Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+.sala[data-sala="naturaleza"]::after {
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, .14) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .14) 0 1px, transparent 1px 48px),
+    #203A20;
+  border-top: 6px solid #5E7F4A;
+}
+.sala[data-sala="naturaleza"] .obra-marco {
+  background: #E9E2CB;
+  box-shadow: inset 0 0 0 1px #B9B08C, 0 40px 60px -28px rgba(0, 20, 0, .7);
+}
+
+/* ---- Sala III · RÉPLICAS: salón clásico, burdeos, damasco, molduras, marcos dorados ---- */
+.sala[data-sala="replicas"], .umbral[data-sala="replicas"] {
+  --sala-texto: #F5EBD6;
+  --sala-muted: #E9D6A6;
+  --sala-linea: rgba(224, 184, 90, .5);
+  --sala-cartela: #D8B25C;
+  --sala-cartela-texto: #2A1216;
+  --sala-jamba: #2A1216;
+  --sala-jamba-texto: #E0B85A;
+}
+.sala[data-sala="replicas"] {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, 0) 12%, rgba(0, 0, 0, 0) 88%, rgba(0, 0, 0, .28)),
+    linear-gradient(180deg, #C9A24A 0 3px, transparent 3px 9px, #8A6A2A 9px 11px, transparent 11px) top / 100% 60px no-repeat,
+    linear-gradient(180deg, transparent 0 calc(62% - 1px), #C9A24A calc(62% - 1px) calc(62% + 1px), transparent calc(62% + 1px)),
+    linear-gradient(180deg, #6A1F28 0%, #4A1419 100%);
+}
+.sala[data-sala="replicas"]::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23E0B85A' fill-opacity='.09'%3E%3Cpath d='M60 8C78 28 78 46 60 60C42 46 42 28 60 8ZM60 60C78 74 78 92 60 112C42 92 42 74 60 60ZM8 60C26 42 44 42 60 60C44 78 26 78 8 60ZM112 60C94 42 76 42 60 60C76 78 94 78 112 60Z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 120px 120px;
+}
+.sala[data-sala="replicas"]::after {
+  background: repeating-linear-gradient(45deg, #3A2418 0 22px, #4B3020 22px 44px);
+  border-top: 8px solid #6B4A22;
+}
+.sala[data-sala="replicas"] .obra-marco {
+  background: linear-gradient(135deg, #E9C77A, #9C7A34 50%, #E9C77A);
+  box-shadow: inset 0 0 0 2px #5C4118, inset 0 0 0 5px #C9A24A, 0 40px 60px -28px rgba(0, 0, 0, .85);
+}
+
+/* ---- Sala IV · ARTE DIGITAL: oscura, retícula turquesa, marcos finos luminosos ---- */
+.sala[data-sala="digital"], .umbral[data-sala="digital"] {
+  --sala-texto: #F5F1E6;
+  --sala-muted: #B5CEDD;
+  --sala-linea: rgba(125, 167, 196, .45);
+  --sala-cartela: #0B1012;
+  --sala-cartela-texto: #8FBAD4;
+  --sala-jamba: #0B1012;
+  --sala-jamba-texto: #7DA7C4;
+}
+.sala[data-sala="digital"] {
+  background:
+    radial-gradient(ellipse 55% 60% at 50% 35%, rgba(125, 167, 196, .16), rgba(125, 167, 196, 0) 70%),
+    linear-gradient(180deg, #151F24 0%, #0B1114 100%);
+}
+.sala[data-sala="digital"]::before {
+  background-image:
+    linear-gradient(rgba(125, 167, 196, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(125, 167, 196, .07) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+.sala[data-sala="digital"]::after {
+  background: linear-gradient(180deg, rgba(125, 167, 196, .16), rgba(125, 167, 196, 0) 45%), #091013;
+  border-top: 1px solid #7DA7C4;
+  box-shadow: 0 -8px 24px -6px rgba(125, 167, 196, .45);
+}
+.sala[data-sala="digital"] .obra-marco {
+  background: #04070A;
+  box-shadow: 0 0 0 1px #7DA7C4, 0 0 24px rgba(125, 167, 196, .4);
+}
+
+/* ---- Sala V · ESTILO LIBRE: taller, pared crema con manchas, marcos irregulares ---- */
+.sala[data-sala="libre"], .umbral[data-sala="libre"] {
+  --sala-texto: #1C1C1B;
+  --sala-muted: #333331;
+  --sala-linea: rgba(28, 28, 27, .35);
+  --sala-cartela: #1C1C1B;
+  --sala-cartela-texto: #F8F5EA;
+  --sala-jamba: #E8A04A;
+  --sala-jamba-texto: #1C1C1B;
+}
+.sala[data-sala="libre"] {
+  background:
+    radial-gradient(circle at 16% 20%, rgba(239, 228, 138, .95) 0 8%, rgba(239, 228, 138, 0) 20%),
+    radial-gradient(circle at 80% 28%, rgba(125, 167, 196, .3) 0 10%, rgba(125, 167, 196, 0) 24%),
+    radial-gradient(circle at 62% 82%, rgba(232, 160, 74, .35) 0 9%, rgba(232, 160, 74, 0) 22%),
+    radial-gradient(circle at 34% 66%, rgba(127, 163, 90, .28) 0 7%, rgba(127, 163, 90, 0) 18%),
+    #F3EEDB;
+}
+.sala[data-sala="libre"]::before {
+  background-image: linear-gradient(115deg, transparent 0 46%, rgba(255, 255, 255, .35) 50%, transparent 54%);
+  background-size: 260px 260px;
+}
+.sala[data-sala="libre"]::after {
+  background: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, .3) 0 1px, transparent 2px) 0 0 / 14px 14px, #CFC6AC;
+  border-top: 8px solid #1C1C1B;
+}
+.sala[data-sala="libre"] .obra-marco {
+  background: #FFFDF6;
+  border-radius: 3px 14px 4px 12px;
+  box-shadow: 0 0 0 3px #E8A04A, 0 30px 40px -24px rgba(28, 28, 27, .55);
+}
+.sala[data-sala="libre"] .obra:nth-child(3n+1) .obra-marco { rotate: -.8deg; }
+.sala[data-sala="libre"] .obra:nth-child(3n+2) .obra-marco { rotate: .6deg; }
+.sala[data-sala="libre"] .obra:nth-child(3n) .obra-marco { rotate: -.3deg; }
+
+/* ---- Sala VI · TEXTILES: índigo, trama de tela, pespunte en los marcos ---- */
+.sala[data-sala="textiles"], .umbral[data-sala="textiles"] {
+  --sala-texto: #F3EEDF;
+  --sala-muted: #D2DBEE;
+  --sala-linea: rgba(233, 196, 106, .5);
+  --sala-cartela: #E9C46A;
+  --sala-cartela-texto: #16233D;
+  --sala-jamba: #0F1A2E;
+  --sala-jamba-texto: #E9C46A;
+}
+.sala[data-sala="textiles"] { background: linear-gradient(180deg, #24406A 0%, #1A2E52 100%); }
+.sala[data-sala="textiles"]::before {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 5px);
+}
+.sala[data-sala="textiles"]::after {
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 2px, transparent 2px 22px), #14223D;
+  border-top: 6px solid #0E182B;
+}
+.sala[data-sala="textiles"] .obra-marco {
+  background: #2F4D7E;
+  box-shadow: 0 30px 50px -28px rgba(0, 0, 0, .8);
+  outline: 2px dashed #E9C46A;     /* pespunte */
+  outline-offset: -7px;
+}
+
+/* ---- Cabecera, índice y cursor según la sala activa (contraste AA en cada una) ---- */
+html[data-sala-activa="mascotas"] .cabecera { --cab-fondo: #5A2E1E; --cab-texto: #F5F1E6; --cab-muted: #EBD3B5; --cab-acento: #EFE48A; }
+html[data-sala-activa="naturaleza"] .cabecera { --cab-fondo: #1E3A24; --cab-texto: #F5F1E6; --cab-muted: #CFE0BF; --cab-acento: #EFE48A; }
+html[data-sala-activa="replicas"] .cabecera { --cab-fondo: #2A1216; --cab-texto: #F5EBD6; --cab-muted: #E6CF9A; --cab-acento: #E0B85A; }
+html[data-sala-activa="digital"] .cabecera { --cab-fondo: #0B1012; --cab-texto: #F5F1E6; --cab-muted: #A9C4D6; --cab-acento: #7DA7C4; }
+html[data-sala-activa="libre"] .cabecera { --cab-fondo: #F8F5EA; --cab-texto: #1C1C1B; --cab-muted: #444444; --cab-acento: #E8A04A; }
+html[data-sala-activa="textiles"] .cabecera { --cab-fondo: #16233D; --cab-texto: #F3EEDF; --cab-muted: #C5D0E6; --cab-acento: #E9C46A; }
+html[data-sala-activa="libre"] .cursor-disco { background: var(--tinta); color: var(--crema); }
+
+/* Modo apilado (móvil): el umbral ya va en flujo; las salas conservan su pared y suelo */
+html:not(.modo-horizontal) .sala::after { height: 14vh; }

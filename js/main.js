@@ -52,7 +52,7 @@
     const contacto = $('#contacto');
     const frag = document.createDocumentFragment();
 
-    SALAS.forEach(sala => {
+    SALAS.forEach((sala, si) => {
       const sec = document.createElement('section');
       sec.className = 'sala';
       sec.id = 'sala-' + sala.id;
@@ -96,6 +96,13 @@
         contenedor.appendChild(art);
       });
 
+      // Umbral (puerta) antes de cada sala, con su rótulo «Sala I», «Sala II»…
+      const umbral = document.createElement('div');
+      umbral.className = 'umbral';
+      umbral.dataset.sala = sala.id;
+      umbral.setAttribute('aria-hidden', 'true');
+      umbral.innerHTML = `<span class="umbral-rotulo">Sala ${['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][si] || si + 1}</span>`;
+      frag.appendChild(umbral);
       frag.appendChild(sec);
     });
 
@@ -274,7 +281,13 @@
 
     // La linterna se apaga al llegar a la sala de contacto (crema)
     const rc = $('#contacto').getBoundingClientRect();
-    html.classList.toggle('en-contacto', esH && rc.left < vw * 0.5);
+    html.classList.toggle('en-contacto', esH ? rc.left < vw * 0.5 : rc.top < vh * 0.5);
+    html.classList.toggle('en-portada', $('#entrada').getBoundingClientRect().bottom > vh * 0.5);
+
+    // Cabecera e índice cambian de color según la sala del cuadro centrado (no en contacto)
+    const salaActual = mejor >= 0 && !html.classList.contains('en-contacto') ? elObras[mejor].closest('.sala').dataset.sala : undefined;
+    if (salaActual) { if (html.dataset.salaActiva !== salaActual) html.dataset.salaActiva = salaActual; }
+    else if ('salaActiva' in html.dataset) delete html.dataset.salaActiva;
 
     const max = document.documentElement.scrollHeight - vh;
     const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
@@ -305,10 +318,12 @@
      --------------------------------------------------------------- */
   function iniciarLinterna() {
     const l = $('#linterna');
+    const ctrl = $('#linterna-control');
+    const pista = $('#linterna-pista');
     let tocando = false;
 
     const mover = e => {
-      if (!anchoMQ.matches) return;               // en móvil no hay linterna
+      if (!anchoMQ.matches) return;               // en móvil la linterna la mueve el control
       if (e.pointerType === 'touch' && !tocando) return;
       l.style.setProperty('--x', e.clientX + 'px');
       l.style.setProperty('--y', e.clientY + 'px');
@@ -327,6 +342,66 @@
     // Ratón que sale de la ventana
     window.addEventListener('pointerout', e => {
       if (!e.relatedTarget && e.pointerType === 'mouse') l.classList.remove('activa');
+    });
+
+    // Control táctil: se agarra y se arrastra; la luz va un poco por encima del dedo
+    if (!ctrl) return;
+    html.classList.toggle('linterna-lista', !anchoMQ.matches || window.matchMedia('(pointer: coarse)').matches);
+    const DESPLAZAMIENTO = 96;   // px: la luz queda por encima del dedo
+    const PISTA_MS = 6000;
+    let agarrada = false;
+    let apagarT = 0;
+    const encender = (x, y) => {
+      l.style.setProperty('--x', x + 'px');
+      l.style.setProperty('--y', (y - DESPLAZAMIENTO) + 'px');
+      l.classList.add('activa');
+      ctrl.setAttribute('aria-pressed', 'true');
+    };
+    const apagar = () => {
+      clearTimeout(apagarT);
+      l.classList.remove('activa');
+      ctrl.setAttribute('aria-pressed', 'false');
+    };
+    const ocultarPista = () => {
+      if (pista) pista.hidden = true;
+      try { localStorage.setItem('linterna-pista', '1'); } catch (_) {}
+    };
+    if (pista) {
+      let vista = false;
+      try { vista = localStorage.getItem('linterna-pista') === '1'; } catch (_) {}
+      pista.hidden = vista;
+      if (!vista) setTimeout(ocultarPista, PISTA_MS);
+    }
+
+    ctrl.addEventListener('pointerdown', e => {
+      e.preventDefault();
+      e.stopPropagation();                       // no llega a la lógica de ratón/táctil global
+      agarrada = true;
+      clearTimeout(apagarT);
+      ctrl.setPointerCapture(e.pointerId);
+      html.classList.add('linterna-agarrada');
+      ocultarPista();
+      encender(e.clientX, e.clientY);
+    });
+    ctrl.addEventListener('pointermove', e => {
+      if (agarrada) encender(e.clientX, e.clientY);
+    });
+    const soltarCtrl = e => {
+      e.stopPropagation();
+      if (!agarrada) return;
+      agarrada = false;
+      html.classList.remove('linterna-agarrada');
+      clearTimeout(apagarT);
+      apagarT = setTimeout(apagar, 4000);         // queda unos segundos y se desvanece
+    };
+    ctrl.addEventListener('pointerup', soltarCtrl);
+    ctrl.addEventListener('pointercancel', soltarCtrl);
+    // Teclado (Enter o Espacio): alterna; sin puntero, la luz queda hasta volver a pulsar
+    ctrl.addEventListener('click', e => {
+      if (e.detail !== 0) return;
+      ocultarPista();
+      if (l.classList.contains('activa')) apagar();
+      else encender(innerWidth / 2, innerHeight / 2);
     });
   }
 
@@ -446,16 +521,20 @@
   function abrirVisor(i, origenBtn) {
     disparador = origenBtn || null;
     visor.hidden = false;
+    // Una entrada de historial para que Atrás cierre el visor en vez de salir de la página
+    if (!(history.state && history.state.visor)) history.pushState({ visor: true }, '');
     html.classList.add('visor-abierto');
     mostrar(i, origenBtn);
     if (visor.animate && !reduceMQ.matches) visor.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 });
     vCerrar.focus({ preventScroll: true });
   }
 
-  function cerrarVisor() {
+  // desdeHistorial: el Atrás del navegador ya quitó la entrada; si no, la quitamos nosotros
+  function cerrarVisor(desdeHistorial) {
     if (visor.hidden) return;
     visor.hidden = true;
     html.classList.remove('visor-abierto');
+    if (desdeHistorial !== true && history.state && history.state.visor) history.back();
     if (disparador && document.contains(disparador)) disparador.focus({ preventScroll: true });
     disparador = null;
   }
@@ -499,7 +578,8 @@
   function iniciarVisor() {
     $('.visor-ant').addEventListener('click', () => ir(-1));
     $('.visor-sig').addEventListener('click', () => ir(1));
-    vCerrar.addEventListener('click', cerrarVisor);
+    vCerrar.addEventListener('click', () => cerrarVisor());
+    window.addEventListener('popstate', () => { if (!visor.hidden) cerrarVisor(true); });
 
     // Rueda: zoom
     vEscena.addEventListener('wheel', e => {
@@ -545,10 +625,14 @@
       if (!p) return;
       punteros.delete(e.pointerId);
       // Deslizar horizontal (sin zoom) cambia de obra
-      if (punteros.size === 0 && zoom.s <= 1.01 && arrastre) {
+      if (punteros.size === 0 && zoom.s <= 1.01 && arrastre && e.type !== 'pointercancel') {
         const dx = e.clientX - p.x0;
         const dy = e.clientY - p.y0;
+        const r = vImg.getBoundingClientRect();
+        const enImagen = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
         if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) ir(dx < 0 ? 1 : -1);
+        else if (dy > 100 && dy > Math.abs(dx) * 1.5) cerrarVisor();          // deslizar abajo cierra
+        else if (Math.hypot(dx, dy) < 10 && !enImagen) cerrarVisor();         // toque o clic en el fondo
       }
       if (punteros.size === 0) {
         arrastre = null;
@@ -587,6 +671,105 @@
   /* ---------------------------------------------------------------
      8. Arranque
      --------------------------------------------------------------- */
+  /* ---------------------------------------------------------------
+     7b. Movimiento con el móvil (giroscopio): desplaza la galería
+     --------------------------------------------------------------- */
+  // Sensibilidad (ajustable)
+  const GIRO_ZONA_MUERTA = 6;      // grados de inclinación sin movimiento
+  const GIRO_GRADOS_MAX = 28;      // inclinación desde el cero que da velocidad máxima
+  const GIRO_VELOCIDAD_MAX = 16;   // px por fotograma a velocidad máxima
+  const GIRO_SUAVIZADO = 0.12;     // 0..1: cuánto se acerca la velocidad a la meta por fotograma
+  const GIRO_ESPERA_MS = 1500;     // sin eventos en este tiempo, no hay sensor
+
+  function iniciarMovimiento() {
+    const ui = $('#giro-ui');
+    const btn = $('#giro-control');
+    const aviso = $('#giro-aviso');
+    if (!ui || !btn || reduceMQ.matches || !('DeviceOrientationEvent' in window)) return;
+    if (!html.classList.contains('linterna-lista')) return;   // solo táctil o pantalla estrecha
+    html.classList.add('giro-ok');
+
+    let activo = false, recibido = false, enBucle = false, tocando = false;
+    let cero = null, meta = 0, vel = 0, esperaT = 0, avisoT = 0;
+
+    const decir = texto => {
+      aviso.textContent = texto;
+      aviso.hidden = false;
+      clearTimeout(avisoT);
+      avisoT = setTimeout(() => { aviso.hidden = true; }, 3000);
+    };
+    const angulo = () => {
+      const a = screen.orientation ? screen.orientation.angle : (window.orientation || 0);
+      return ((a % 360) + 360) % 360;
+    };
+
+    // Inclinación desde el cero -> velocidad meta (positiva = bajar)
+    const alOrientar = e => {
+      if (e.gamma == null && e.beta == null) return;
+      recibido = true;
+      if (!cero) cero = { g: e.gamma || 0, b: e.beta || 0 };   // la orientación al activar es el cero
+      const a = angulo();
+      let d, signo = 1;
+      if (a === 90 || a === 270) {                  // horizontal: beta; el signo depende del lado
+        d = (e.beta || 0) - cero.b;
+        signo = a === 90 ? 1 : -1;
+      } else {                                      // vertical: gamma (izquierda/derecha)
+        d = (e.gamma || 0) - cero.g;
+      }
+      d *= signo;
+      const exceso = Math.abs(d) <= GIRO_ZONA_MUERTA ? 0 : Math.abs(d) - GIRO_ZONA_MUERTA;
+      const frac = Math.min(1, exceso / (GIRO_GRADOS_MAX - GIRO_ZONA_MUERTA));
+      meta = Math.sign(d) * frac * GIRO_VELOCIDAD_MAX;
+    };
+
+    const bucle = () => {
+      if (!activo) { enBucle = false; return; }
+      if (document.hidden || tocando || html.classList.contains('visor-abierto')) { vel = 0; meta = 0; }
+      vel += (meta - vel) * GIRO_SUAVIZADO;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      if ((vel < 0 && scrollY <= 0) || (vel > 0 && scrollY >= max)) { vel = 0; meta = 0; }   // extremos
+      if (Math.abs(vel) > 0.05) window.scrollBy(0, vel);
+      requestAnimationFrame(bucle);
+    };
+
+    // El dedo sobre la pantalla pausa (el control de la linterna no pausa)
+    window.addEventListener('pointerdown', e => { if (!e.target.closest('#giro-control')) tocando = true; }, { passive: true });
+    const soltarTacto = () => { tocando = false; };
+    window.addEventListener('pointerup', soltarTacto);
+    window.addEventListener('pointercancel', soltarTacto);
+
+    const apagar = () => {
+      activo = false;
+      meta = 0; vel = 0; cero = null;
+      window.removeEventListener('deviceorientation', alOrientar);
+      clearTimeout(esperaT);
+      btn.setAttribute('aria-pressed', 'false');
+      btn.textContent = 'Mover con el móvil';
+    };
+
+    btn.addEventListener('click', async () => {
+      if (activo) { apagar(); return; }
+      try {
+        // iOS: el permiso se pide dentro del propio clic
+        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+          const r = await DeviceOrientationEvent.requestPermission();
+          if (r !== 'granted') { decir('Sin permiso de movimiento'); return; }
+        }
+      } catch (_) { decir('No se pudo activar el movimiento'); return; }
+
+      activo = true; recibido = false; cero = null; meta = 0; vel = 0;
+      window.addEventListener('deviceorientation', alOrientar, { passive: true });
+      btn.setAttribute('aria-pressed', 'true');
+      btn.textContent = 'Movimiento activo: apagar';
+      if (!enBucle) { enBucle = true; requestAnimationFrame(bucle); }
+      clearTimeout(esperaT);
+      esperaT = setTimeout(() => {
+        if (activo && !recibido) { apagar(); btn.disabled = true; decir('Este móvil no envía movimiento'); }
+      }, GIRO_ESPERA_MS);
+    });
+    window.addEventListener('orientationchange', () => { cero = null; meta = 0; });
+  }
+
   function onChange(mq, fn) {
     if (mq.addEventListener) mq.addEventListener('change', fn);
     else if (mq.addListener) mq.addListener(fn);
@@ -598,6 +781,7 @@
     iniciarEntrada();
     iniciarVisor();
     iniciarLinterna();
+    iniciarMovimiento();
     iniciarCursor();
     aplicarModo();
 
