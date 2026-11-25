@@ -407,20 +407,22 @@
       raf = encendida ? requestAnimationFrame(pintar) : 0;
     };
 
-    // Ejes según la orientación de la pantalla: gamma = izquierda/derecha, beta = adelante/atrás
+    // Solo arriba/abajo: inclinar a los lados no mueve la luz (el eje horizontal es del dedo).
+    // En vertical manda beta; con el teléfono de lado, gamma.
     const alOrientar = e => {
       if (e.gamma == null && e.beta == null) return;
       ultima = { g: e.gamma || 0, b: e.beta || 0 };
-      if (!encendida || !origen) return;
+      if (!encendida || !origen || dedo) return;
       if (!base) base = { ...ultima };
       const dg = ultima.g - base.g;
       const db = ultima.b - base.b;
       const a = screen.orientation ? screen.orientation.angle : (window.orientation || 0);
-      let mx = dg, my = db;
-      if (a === 90) { mx = db; my = -dg; }
-      else if (a === 270 || a === -90) { mx = -db; my = dg; }
-      else if (a === 180) { mx = -dg; my = -db; }   // signos por orientación: revisar en un móvil real
-      apuntar(origen.x + mx * innerWidth / GRADOS_MEDIA_PANTALLA, origen.y + my * innerHeight / GRADOS_MEDIA_PANTALLA);
+      let my = db;                                        // signos de lado: revisar en un móvil real
+      if (a === 90) my = -dg;
+      else if (a === 270 || a === -90) my = dg;
+      else if (a === 180) my = -db;
+      // Hacia arriba (beta sube) la luz sube, como al apuntar una linterna
+      apuntar(tgt.x, origen.y - my * innerHeight / GRADOS_MEDIA_PANTALLA);
     };
     window.addEventListener('deviceorientation', alOrientar, { passive: true });
     window.addEventListener('orientationchange', () => { base = null; });
