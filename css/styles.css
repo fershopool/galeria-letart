@@ -1234,14 +1234,13 @@ html { --cab-h: 104px; }
 /* ---------- Easter egg: un escarabajo escondido en cada sala ---------- */
 .bicho {
   position: absolute;
-  z-index: 4;
+  z-index: 1;
   width: 48px;
   height: 48px;
   display: grid;
   place-items: center;
   left: var(--bx, 40%);
   bottom: var(--by, 3%);
-  animation: bicho-paseo var(--bt, 9s) ease-in-out var(--bd, 0s) infinite;
 }
 .bicho-cuerpo {
   width: 34px;
@@ -1249,7 +1248,8 @@ html { --cab-h: 104px; }
   background: url('../img/portada-escarabajo.webp') center / contain no-repeat;
   filter: drop-shadow(0 0 5px rgba(248, 245, 234, .75));
   rotate: var(--br, 0deg);
-  animation: bicho-pata .22s ease-in-out infinite, bicho-rumbo var(--bt, 9s) ease-in-out var(--bd, 0s) infinite;
+  transition: rotate .18s ease, scale .15s ease;
+  animation: bicho-pata .22s ease-in-out infinite;
 }
 .bicho-aviso {
   position: absolute;
@@ -1269,45 +1269,18 @@ html { --cab-h: 104px; }
 .bicho:focus-visible .bicho-aviso { opacity: 1; }
 .bicho:hover .bicho-cuerpo { scale: 1.25; }
 /* Cada sala lo esconde en un sitio distinto y camina a su manera */
-#sala-mascotas   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  --bt: 9s;  }
-#sala-naturaleza .bicho { --bx: 62%; --by: 7%;  --br: -25deg; --bt: 7s;  --bd: -2s; }
-#sala-replicas   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; --bt: 12s; --bd: -5s; }
-#sala-digital    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; --bt: 6s;  --bd: -1s; }
-#sala-libre      .bicho { --bx: 29%; --by: 3%;  --br: 35deg;  --bt: 8s;  --bd: -4s; }
-#sala-textiles   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; --bt: 11s; --bd: -7s; }
-/* Corre, frena, gira, se escurre bajo el suelo, se asoma y vuelve */
-@keyframes bicho-paseo {
-  0%, 10% { translate: 0 0; scale: 1; opacity: 1; }
-  18% { translate: 70px -4px; }
-  24% { translate: 62px 0; }
-  30%, 36% { translate: 74px -2px; }
-  44% { translate: -55px 0; }
-  50%, 56% { translate: -62px -6px; scale: 1; opacity: 1; }
-  62%, 70% { translate: -62px 26px; scale: .35; opacity: 0; }      /* escondido */
-  74%, 78% { translate: -40px 12px; scale: .75; opacity: 1; }      /* se asoma */
-  81% { translate: -40px 24px; scale: .4; opacity: 0; }            /* ¡uy! */
-  88% { translate: 10px -10px; scale: 1.15; opacity: 1; }
-  94%, 100% { translate: 0 0; scale: 1; opacity: 1; }
-}
-/* La cabeza apunta hacia donde corre */
-@keyframes bicho-rumbo {
-  0%, 8% { rotate: var(--br, 0deg); }
-  11%, 24% { rotate: 90deg; }
-  30%, 35% { rotate: 20deg; }
-  38%, 50% { rotate: -90deg; }
-  56%, 70% { rotate: 180deg; }
-  74%, 80% { rotate: 0deg; }
-  84%, 90% { rotate: 90deg; }
-  96%, 100% { rotate: var(--br, 0deg); }
-}
+#sala-mascotas   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  }
+#sala-naturaleza .bicho { --bx: 62%; --by: 7%;  --br: -25deg; }
+#sala-replicas   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; }
+#sala-digital    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; }
+#sala-libre      .bicho { --bx: 29%; --by: 3%;  --br: 35deg; }
+#sala-textiles   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; }
 @keyframes bicho-pata {
   0%, 100% { transform: rotate(-9deg); }
   50% { transform: rotate(9deg); }
 }
 /* Al pillarlo (cursor, foco o dedo) se queda quieto para poder tocarlo */
-.bicho:hover, .bicho:focus-visible, .bicho:active,
 .bicho:hover .bicho-cuerpo, .bicho:focus-visible .bicho-cuerpo, .bicho:active .bicho-cuerpo { animation-play-state: paused; }
-.bicho:focus-visible { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .bicho, .bicho-cuerpo { animation: none; }
 }
@@ -1316,3 +1289,15 @@ html { --cab-h: 104px; }
   .bicho, #sala-replicas .bicho, #sala-libre .bicho { width: 34px; height: 34px; bottom: 0; }
   .bicho-cuerpo { width: 20px; height: 24px; }
 }
+
+/* El escarabajo pasa por encima de la pared y por DEBAJO de los cuadros: las obras van en
+   una capa superior que solo captura el puntero donde hay algo (si no, taparía al bicho) */
+.sala .sala-obras { position: relative; z-index: 2; pointer-events: none; }
+.sala .obra-marco, .sala .cedula { pointer-events: auto; }
+
+/* Colgado irregular: cada obra a su altura (--alt lo pone main.js, de -1 a 1) */
+.sala .obra { position: relative; top: calc(var(--alt, 0) * 6vh); }
+@media (max-width: 799px) and (orientation: portrait) {
+  .sala .obra { top: calc(var(--alt, 0) * 13dvh); }
+}
+@media (max-height: 500px) { .sala .obra { top: 0; } }

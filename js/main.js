@@ -27,6 +27,8 @@
 
   // Profundidad de cada cuadro: distinta velocidad en el recorrido horizontal.
   // Son fracciones pequeñas de la distancia total (miles de px), así que el desfase real es de decenas de px.
+  // Altura de cada cuadro respecto al centro (-1 arriba, 1 abajo): colgado irregular
+  const ALTURAS = [-.7, .8, -.1, -1, .45, 1, -.45, .15, .9, -.85, .6];
   const PROFUNDIDADES = [0, 0.0015, 0.003, 0.001];
 
   // Lee "40 × 30" de las medidas. El orden (alto o ancho) no está claro en el portafolio,
@@ -75,6 +77,7 @@
         const art = document.createElement('article');
         art.className = 'obra';
         art.dataset.depth = PROFUNDIDADES[gi % PROFUNDIDADES.length];
+        art.style.setProperty('--alt', ALTURAS[gi % ALTURAS.length]);
         art.innerHTML = `
           <div class="obra-marco" style="--cm:${d.cm}">
             <button class="obra-btn" type="button" aria-label="Ver en grande: ${escapar(obra.titulo)}">
@@ -108,6 +111,7 @@
       bicho.setAttribute('aria-label', '¡Encontraste el escarabajo! Visitar el Instagram de la artista');
       bicho.innerHTML = '<span class="bicho-cuerpo"></span><span class="bicho-aviso" aria-hidden="true">¡Me encontraste!</span>';
       sec.appendChild(bicho);
+      pasear(bicho, sec);
 
       // Umbral (puerta) antes de cada sala, con su rótulo «Sala I», «Sala II»…
       const umbral = document.createElement('div');
@@ -128,6 +132,63 @@
     if (!tieneGSAP || !tlHorizontal) return;
     clearTimeout(refrescoTimer);
     refrescoTimer = setTimeout(() => ScrollTrigger.refresh(), 150);
+  }
+
+  /* El escarabajo corre por la pared entre puntos al azar de lo que se ve de su sala:
+     alterna esconderse debajo de un cuadro (va por detrás) y salir a campo abierto. */
+  const ESCARABAJO = { velMin: 180, velMax: 460, pausaMax: 900 };   // px/s y ms
+  function pasear(bicho, sec) {
+    const cuerpo = bicho.firstElementChild;
+    const azar = (a, b) => a + Math.random() * Math.max(0, b - a);
+    let esconder = true;
+    let giro = 0;
+    let quieto = false;
+    let anim = null;
+    // Al pillarlo (cursor, foco o dedo) se detiene para poder tocarlo
+    const parar = v => () => { quieto = v; if (anim) { if (v) anim.pause(); else anim.play(); } };
+    ['pointerenter', 'pointerdown', 'focus'].forEach(ev => bicho.addEventListener(ev, parar(true)));
+    ['pointerleave', 'pointercancel', 'blur'].forEach(ev => bicho.addEventListener(ev, parar(false)));
+
+    bicho.addEventListener('click', () => { parar(false)(); bicho.blur(); });
+
+    const paso = () => {
+      const s = sec.getBoundingClientRect();
+      const x0 = Math.max(s.left, 0);
+      const x1 = Math.min(s.right, window.innerWidth);
+      // Fuera de pantalla, quieto o con movimiento reducido: se vuelve a mirar en un momento
+      if (reduceMQ.matches || quieto || document.hidden || x1 - x0 < 120 || html.classList.contains('visor-abierto')) {
+        setTimeout(paso, 500);
+        return;
+      }
+      const tam = bicho.offsetWidth;
+      const a = bicho.getBoundingClientRect();
+      let destino = null;
+      if (esconder) {
+        const marcos = $$('.obra-marco', sec).map(m => m.getBoundingClientRect())
+          .filter(r => r.left + r.width / 2 > x0 && r.left + r.width / 2 < x1);
+        const r = marcos[Math.floor(Math.random() * marcos.length)];
+        if (r) destino = { x: r.left + azar(r.width * .25, r.width * .75), y: r.top + azar(r.height * .3, r.height * .85) };
+      }
+      if (!destino) {
+        // A campo abierto: casi siempre el suelo o la parte baja de la pared
+        const alto = Math.min(s.bottom, window.innerHeight);
+        destino = { x: azar(x0 + tam, x1 - tam), y: azar(s.top + (alto - s.top) * (Math.random() < .25 ? .15 : .78), alto - tam / 2) };
+      }
+      esconder = !esconder;
+      const dx = destino.x - (a.left + a.width / 2);
+      const dy = destino.y - (a.top + a.height / 2);
+      const desde = { left: bicho.offsetLeft + 'px', top: bicho.offsetTop + 'px' };
+      const hasta = { left: bicho.offsetLeft + dx + 'px', top: bicho.offsetTop + dy + 'px' };
+      // La cabeza apunta hacia donde corre, girando por el camino corto
+      const rumbo = Math.atan2(dy, dx) * 180 / Math.PI + 130;
+      giro += ((rumbo - giro) % 360 + 540) % 360 - 180;
+      cuerpo.style.rotate = giro + 'deg';
+      const ms = Math.max(250, Math.hypot(dx, dy) / azar(ESCARABAJO.velMin, ESCARABAJO.velMax) * 1000);
+      Object.assign(bicho.style, hasta, { bottom: 'auto' });
+      anim = bicho.animate([desde, hasta], { duration: ms, easing: 'cubic-bezier(.45, .05, .35, 1)' });
+      anim.onfinish = () => setTimeout(paso, azar(120, ESCARABAJO.pausaMax));
+    };
+    setTimeout(paso, azar(300, 1500));
   }
 
   function construirIndice() {
