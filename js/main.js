@@ -7,9 +7,11 @@
 
   const html = document.documentElement;
   const reduceMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const anchoMQ = window.matchMedia('(min-width: 800px)');
   const finoMQ = window.matchMedia('(pointer: fine)');
-  // Horizontal solo en escritorio y con movimiento permitido
+  // Móvil y táctil estrecho (también apaisado): carrusel de scroll nativo, sin GSAP
+  const movilMQ = window.matchMedia('(max-width: 799px), (pointer: coarse) and (max-height: 500px)');
+  const movil = () => movilMQ.matches;
+  // Horizontal (GSAP) solo en escritorio y con movimiento permitido
   const horizontalMQ = window.matchMedia('(min-width: 800px) and (prefers-reduced-motion: no-preference)');
 
   const tieneGSAP = typeof window.gsap !== 'undefined' && typeof window.ScrollTrigger !== 'undefined';
@@ -43,6 +45,7 @@
   let tickerHorizontal = null;        // actualización por frame mientras dura el scrub
   let io = null;                      // IntersectionObserver (modo vertical)
   let pendiente = false;              // hay una actualización de estados en cola
+  let centrado = -1;                  // índice de la obra centrada (la que ilumina la linterna)
 
   /* ---------------------------------------------------------------
      1. Render de salas y obras desde data.js
@@ -142,6 +145,7 @@
     const fin = () => {
       entrada.hidden = true;
       html.classList.remove('entrada-activa');
+      programarActualizacion(); // quita en-portada sin esperar al primer deslizamiento
       if (tieneGSAP) ScrollTrigger.refresh();
       $('#galeria').focus({ preventScroll: true });
     };
@@ -224,12 +228,13 @@
     if (tieneGSAP) ScrollTrigger.getAll().forEach(t => t.kill(true));
     if (tickerHorizontal) { gsap.ticker.remove(tickerHorizontal); tickerHorizontal = null; }
     if (io) { io.disconnect(); io = null; }
-    html.classList.remove('modo-horizontal', 'modo-vertical');
+    html.classList.remove('modo-horizontal', 'modo-vertical', 'modo-carrusel');
+    html.classList.toggle('modo-carrusel', movil());
     if (tieneGSAP) {
       gsap.set([$('#pista'), $('.capa-fondo'), ...elObras].filter(Boolean), { clearProps: 'transform,backgroundPosition' });
     }
 
-    if (tieneGSAP && horizontalMQ.matches) {
+    if (tieneGSAP && horizontalMQ.matches && !movil()) {
       html.classList.add('modo-horizontal');
       tlHorizontal = montarHorizontal();
       ScrollTrigger.refresh();
@@ -254,7 +259,8 @@
   function actualizarEstados() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const esH = html.classList.contains('modo-horizontal');
+    const carrusel = html.classList.contains('modo-carrusel');
+    const esH = carrusel || html.classList.contains('modo-horizontal');
     let mejor = -1;
     let mejorC = Infinity;
 
@@ -263,11 +269,12 @@
       const marco = el.querySelector('.obra-marco');
       const r = marco.getBoundingClientRect();
       // c: 0 en el centro de la pantalla, 1 en los bordes (solo eje horizontal en modo horizontal)
-      const c = esH
-        ? Math.min(1, Math.abs(r.left + r.width / 2 - vw / 2) / (vw / 2))
-        : Math.min(1, Math.abs(r.top + r.height / 2 - vh / 2) / (vh / 2));
-      if (esH) marco.style.setProperty('--c', c.toFixed(3));
-      if (r.width > 0 && c < mejorC) { mejorC = c; mejor = i; }
+      const d = esH
+        ? Math.abs(r.left + r.width / 2 - vw / 2) / (vw / 2)
+        : Math.abs(r.top + r.height / 2 - vh / 2) / (vh / 2);
+      if (esH) marco.style.setProperty('--c', Math.min(1, d).toFixed(3));
+      // Sin recortar: en un rótulo de sala gana la obra más cercana, no la primera
+      if (r.width > 0 && d < mejorC) { mejorC = d; mejor = i; }
     });
 
     if (mejor >= 0) {
@@ -285,22 +292,48 @@
     html.classList.toggle('en-portada', $('#entrada').getBoundingClientRect().bottom > vh * 0.5);
 
     // Cabecera e índice cambian de color según la sala del cuadro centrado (no en contacto)
-    const salaActual = mejor >= 0 && !html.classList.contains('en-contacto') ? elObras[mejor].closest('.sala').dataset.sala : undefined;
+    centrado = mejor;
+    const enContacto = html.classList.contains('en-contacto');
+    let salaActual;
+    if (carrusel) {
+      // Carrusel: la sala es la que ocupa el centro de la pantalla (también en su rótulo)
+      const pista = $('#pista');
+      const sala = $$('.sala', pista).find(s => { const r = s.getBoundingClientRect(); return r.left <= vw / 2 && r.right > vw / 2; });
+      salaActual = sala && !enContacto ? sala.dataset.sala : undefined;
+      $$('.indice-item').forEach(b => {
+        const activo = b.dataset.destino === 'sala-' + salaActual || (enContacto && b.dataset.destino === 'contacto');
+        if (activo) b.setAttribute('aria-current', 'true');
+        else b.removeAttribute('aria-current');
+      });
+    } else {
+      salaActual = mejor >= 0 && !enContacto ? elObras[mejor].closest('.sala').dataset.sala : undefined;
+    }
     if (salaActual) { if (html.dataset.salaActiva !== salaActual) html.dataset.salaActiva = salaActual; }
     else if ('salaActiva' in html.dataset) delete html.dataset.salaActiva;
 
-    const max = document.documentElement.scrollHeight - vh;
-    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+    // Progreso: en el carrusel, el avance de la pista; en el resto, el scroll de la página
+    const pistaEl = $('#pista');
+    const recorrido = carrusel ? pistaEl.scrollWidth - pistaEl.clientWidth : document.documentElement.scrollHeight - vh;
+    const avance = carrusel ? pistaEl.scrollLeft : window.scrollY;
+    const p = recorrido > 0 ? Math.min(1, Math.max(0, avance / recorrido)) : 0;
     $('#progreso-barra').style.transform = `scaleX(${p})`;
   }
 
-  // Navegación del índice: en horizontal calcula el scroll que deja la sala a la izquierda
+  // Navegación del índice: en el carrusel centra la sala (su rótulo) o el contacto; en escritorio, el recorrido horizontal
   function irA(destino) {
     const el = document.getElementById(destino);
     if (!el) return;
     const suave = reduceMQ.matches ? 'auto' : 'smooth';
 
-    if (tlHorizontal && tlHorizontal.scrollTrigger) {
+    if (html.classList.contains('modo-carrusel')) {
+      const pista = $('#pista');
+      const objetivo = el.classList.contains('sala') ? el.querySelector('.sala-cabecera') : el;
+      const pr = pista.getBoundingClientRect();
+      const er = objetivo.getBoundingClientRect();
+      const izq = er.left - pr.left + pista.scrollLeft - (pista.clientWidth - er.width) / 2;
+      const max = pista.scrollWidth - pista.clientWidth;
+      pista.scrollTo({ left: Math.min(max, Math.max(0, izq)), behavior: suave });
+    } else if (tlHorizontal && tlHorizontal.scrollTrigger) {
       const st = tlHorizontal.scrollTrigger;
       const offset = el.getBoundingClientRect().left - $('#pista').getBoundingClientRect().left;
       const dist = distanciaHorizontal();
@@ -319,89 +352,134 @@
   function iniciarLinterna() {
     const l = $('#linterna');
     const ctrl = $('#linterna-control');
-    const pista = $('#linterna-pista');
+    const aviso = $('#linterna-pista');
+    const galeria = $('#galeria');
     let tocando = false;
 
+    // Escritorio: la luz sigue al cursor o al dedo. En móvil la gobierna el botón (abajo a la derecha)
     const mover = e => {
-      if (!anchoMQ.matches) return;               // en móvil la linterna la mueve el control
+      if (movil()) return;
       if (e.pointerType === 'touch' && !tocando) return;
       l.style.setProperty('--x', e.clientX + 'px');
       l.style.setProperty('--y', e.clientY + 'px');
       l.classList.add('activa');
     };
-
     window.addEventListener('pointermove', mover, { passive: true });
     window.addEventListener('pointerdown', e => {
       if (e.pointerType === 'touch') { tocando = true; mover(e); }
     }, { passive: true });
     const soltar = e => {
-      if (e.pointerType === 'touch') { tocando = false; l.classList.remove('activa'); }
+      if (e.pointerType !== 'touch') return;
+      tocando = false;
+      if (!movil()) l.classList.remove('activa');
     };
     window.addEventListener('pointerup', soltar);
     window.addEventListener('pointercancel', soltar);
-    // Ratón que sale de la ventana
     window.addEventListener('pointerout', e => {
       if (!e.relatedTarget && e.pointerType === 'mouse') l.classList.remove('activa');
     });
 
-    // Control táctil: se agarra y se arrastra; la luz va un poco por encima del dedo
     if (!ctrl) return;
-    html.classList.toggle('linterna-lista', !anchoMQ.matches || window.matchMedia('(pointer: coarse)').matches);
-    const DESPLAZAMIENTO = 96;   // px: la luz queda por encima del dedo
-    const PISTA_MS = 6000;
-    let agarrada = false;
-    let apagarT = 0;
-    const encender = (x, y) => {
-      l.style.setProperty('--x', x + 'px');
-      l.style.setProperty('--y', (y - DESPLAZAMIENTO) + 'px');
+    html.classList.toggle('linterna-lista', movil() || window.matchMedia('(pointer: coarse)').matches);
+
+    // Móvil: botón que enciende/apaga. Encendida, la luz sigue el giro del móvil (relativo a
+    // la posición al encender) y el dedo. Sin sensor o sin permiso, funciona solo con el dedo.
+    const DEDO_ARRIBA = 72;      // px: la luz queda un poco por encima del dedo
+    const AVISO_MS = 4000;
+    const GRADOS_MEDIA_PANTALLA = 30;
+    let encendida = false, dedo = false, permisoPedido = false;
+    let raf = 0, avisoT = 0;
+    let origen = null;           // centro de la obra al encender
+    let base = null;             // orientación de referencia al encender
+    let ultima = null;           // última orientación recibida (aunque la luz esté apagada)
+    let cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 };
+
+    const apuntar = (x, y) => {
+      tgt.x = Math.min(innerWidth, Math.max(0, x));
+      tgt.y = Math.min(innerHeight, Math.max(0, y));
+    };
+    // Suavizado por fotograma; el bucle se detiene del todo cuando la luz está apagada
+    const pintar = () => {
+      cur.x += (tgt.x - cur.x) * 0.18;
+      cur.y += (tgt.y - cur.y) * 0.18;
+      l.style.setProperty('--x', cur.x.toFixed(1) + 'px');
+      l.style.setProperty('--y', cur.y.toFixed(1) + 'px');
+      raf = encendida ? requestAnimationFrame(pintar) : 0;
+    };
+
+    // Ejes según la orientación de la pantalla: gamma = izquierda/derecha, beta = adelante/atrás
+    const alOrientar = e => {
+      if (e.gamma == null && e.beta == null) return;
+      ultima = { g: e.gamma || 0, b: e.beta || 0 };
+      if (!encendida || !origen) return;
+      if (!base) base = { ...ultima };
+      const dg = ultima.g - base.g;
+      const db = ultima.b - base.b;
+      const a = screen.orientation ? screen.orientation.angle : (window.orientation || 0);
+      let mx = dg, my = db;
+      if (a === 90) { mx = db; my = -dg; }
+      else if (a === 270 || a === -90) { mx = -db; my = dg; }
+      else if (a === 180) { mx = -dg; my = -db; }   // signos por orientación: revisar en un móvil real
+      apuntar(origen.x + mx * innerWidth / GRADOS_MEDIA_PANTALLA, origen.y + my * innerHeight / GRADOS_MEDIA_PANTALLA);
+    };
+    window.addEventListener('deviceorientation', alOrientar, { passive: true });
+    window.addEventListener('orientationchange', () => { base = null; });
+
+    // Arrastrar con el dedo sobre la galería mueve la luz; el swipe horizontal y el toque a la obra siguen igual
+    const mirarDedo = e => { if (encendida && dedo) apuntar(e.clientX, e.clientY - DEDO_ARRIBA); };
+    galeria.addEventListener('pointerdown', e => { if (encendida) { dedo = true; mirarDedo(e); } }, { passive: true });
+    galeria.addEventListener('pointermove', mirarDedo, { passive: true });
+    const soltarDedo = () => { dedo = false; };
+    window.addEventListener('pointerup', soltarDedo, { passive: true });
+    window.addEventListener('pointercancel', soltarDedo, { passive: true });
+
+    // La luz cae primero sobre la obra centrada
+    const centro = () => {
+      const img = elObras[centrado] ? elObras[centrado].querySelector('.obra-btn img') : null;
+      const r = img ? img.getBoundingClientRect() : null;
+      const x = r ? r.left + r.width / 2 : -1;
+      // Solo si la obra está a la vista; en un rótulo de sala, la luz va al centro de la pantalla
+      if (r && r.width > 0 && x > 0 && x < innerWidth) return { x, y: r.top + r.height / 2 };
+      return { x: innerWidth / 2, y: innerHeight / 2 };
+    };
+    const encender = () => {
+      encendida = true;
+      origen = centro();
+      cur = { ...origen };
+      tgt = { ...origen };
+      base = ultima ? { ...ultima } : null;
+      l.style.setProperty('--x', origen.x + 'px');
+      l.style.setProperty('--y', origen.y + 'px');
       l.classList.add('activa');
+      html.classList.add('linterna-on');
       ctrl.setAttribute('aria-pressed', 'true');
+      ctrl.setAttribute('aria-label', 'Apagar linterna');
+      aviso.hidden = false;
+      clearTimeout(avisoT);
+      avisoT = setTimeout(() => { aviso.hidden = true; }, AVISO_MS);
+      if (!raf) raf = requestAnimationFrame(pintar);
     };
     const apagar = () => {
-      clearTimeout(apagarT);
+      encendida = false;
+      dedo = false;
+      cancelAnimationFrame(raf);
+      raf = 0;
+      clearTimeout(avisoT);
+      aviso.hidden = true;
       l.classList.remove('activa');
+      html.classList.remove('linterna-on');
       ctrl.setAttribute('aria-pressed', 'false');
+      ctrl.setAttribute('aria-label', 'Encender linterna');
     };
-    const ocultarPista = () => {
-      if (pista) pista.hidden = true;
-      try { localStorage.setItem('linterna-pista', '1'); } catch (_) {}
-    };
-    if (pista) {
-      let vista = false;
-      try { vista = localStorage.getItem('linterna-pista') === '1'; } catch (_) {}
-      pista.hidden = vista;
-      if (!vista) setTimeout(ocultarPista, PISTA_MS);
-    }
 
-    ctrl.addEventListener('pointerdown', e => {
-      e.preventDefault();
-      e.stopPropagation();                       // no llega a la lógica de ratón/táctil global
-      agarrada = true;
-      clearTimeout(apagarT);
-      ctrl.setPointerCapture(e.pointerId);
-      html.classList.add('linterna-agarrada');
-      ocultarPista();
-      encender(e.clientX, e.clientY);
-    });
-    ctrl.addEventListener('pointermove', e => {
-      if (agarrada) encender(e.clientX, e.clientY);
-    });
-    const soltarCtrl = e => {
-      e.stopPropagation();
-      if (!agarrada) return;
-      agarrada = false;
-      html.classList.remove('linterna-agarrada');
-      clearTimeout(apagarT);
-      apagarT = setTimeout(apagar, 4000);         // queda unos segundos y se desvanece
-    };
-    ctrl.addEventListener('pointerup', soltarCtrl);
-    ctrl.addEventListener('pointercancel', soltarCtrl);
-    // Teclado (Enter o Espacio): alterna; sin puntero, la luz queda hasta volver a pulsar
-    ctrl.addEventListener('click', e => {
-      if (e.detail !== 0) return;
-      ocultarPista();
-      if (l.classList.contains('activa')) apagar();
-      else encender(innerWidth / 2, innerHeight / 2);
+    ctrl.addEventListener('click', () => {
+      if (encendida) { apagar(); return; }
+      // iOS: el permiso de movimiento se pide dentro del propio toque; si se niega, sigue el dedo
+      if (!permisoPedido && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        permisoPedido = true;
+        try { DeviceOrientationEvent.requestPermission().catch(() => {}); } catch (_) {}
+      }
+      encender();
     });
   }
 
@@ -446,20 +524,19 @@
   }
 
   /* ---------------------------------------------------------------
-     7. Visor: FLIP desde la posición de la obra, zoom, arrastre, navegación
+     7. Visor: FLIP desde la posición de la obra, zoom y arrastre
      --------------------------------------------------------------- */
   const visor = $('#visor');
   const vEscena = $('#visor-escena');
   const vZoom = $('#visor-zoom');
   const vImg = $('#visor-img');
-  const vContador = $('#visor-contador');
   const vTitulo = $('#visor-titulo');
   const vFicha = $('#visor-ficha');
   const vNota = $('#visor-nota');
+  const vArtista = $('#visor-artista');
   const vConsulta = $('#visor-consulta');
   const vCerrar = $('#visor-cerrar');
 
-  let actual = 0;
   let disparador = null;
   const zoom = { s: 1, x: 0, y: 0 };
   const punteros = new Map();
@@ -483,10 +560,11 @@
     vFicha.textContent = [obra.tecnica, obra.medidas].filter(Boolean).join(' · ');
     vNota.textContent = obra.nota || '';
     vNota.hidden = !obra.nota;
+    vArtista.textContent = obra.texto || '';
+    vArtista.hidden = !obra.texto;
     vConsulta.href = enlaceConsulta(obra);
     vConsulta.textContent = numero ? 'Consultar por WhatsApp' : 'Consultar en Instagram';
     vConsulta.setAttribute('aria-label', `Consultar disponibilidad y precio de «${obra.titulo}»`);
-    vContador.textContent = `${pad(i + 1)} / ${pad(TOTAL)}`;
     reiniciarZoom();
   }
 
@@ -508,8 +586,7 @@
   }
 
   function mostrar(i, origenBtn) {
-    actual = (i + TOTAL) % TOTAL;
-    pintarObra(actual);
+    pintarObra(i);
     const origen = origenBtn ? origenBtn.querySelector('img') : null;
     const listo = vImg.decode ? vImg.decode().catch(() => {}) : Promise.resolve();
     listo.then(() => {
@@ -537,10 +614,6 @@
     if (desdeHistorial !== true && history.state && history.state.visor) history.back();
     if (disparador && document.contains(disparador)) disparador.focus({ preventScroll: true });
     disparador = null;
-  }
-
-  function ir(delta) {
-    mostrar(actual + delta, null);
   }
 
   // Zoom: límites para no sacar la imagen de la escena
@@ -576,8 +649,6 @@
   };
 
   function iniciarVisor() {
-    $('.visor-ant').addEventListener('click', () => ir(-1));
-    $('.visor-sig').addEventListener('click', () => ir(1));
     vCerrar.addEventListener('click', () => cerrarVisor());
     window.addEventListener('popstate', () => { if (!visor.hidden) cerrarVisor(true); });
 
@@ -593,9 +664,8 @@
       else fijarZoom(2.5);
     });
 
-    // Puntero: pellizco (dos dedos), arrastre (ampliada) y deslizar para cambiar de obra
+    // Puntero: pellizco (dos dedos), arrastre (ampliada) y deslizar abajo o tocar el fondo para cerrar
     vEscena.addEventListener('pointerdown', e => {
-      if (e.target.closest('.visor-flecha')) return;
       vEscena.setPointerCapture(e.pointerId);
       punteros.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY });
       if (punteros.size === 2) {
@@ -624,14 +694,13 @@
       const p = punteros.get(e.pointerId);
       if (!p) return;
       punteros.delete(e.pointerId);
-      // Deslizar horizontal (sin zoom) cambia de obra
+      // Sin zoom: deslizar abajo o tocar el fondo cierra
       if (punteros.size === 0 && zoom.s <= 1.01 && arrastre && e.type !== 'pointercancel') {
         const dx = e.clientX - p.x0;
         const dy = e.clientY - p.y0;
         const r = vImg.getBoundingClientRect();
         const enImagen = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-        if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) ir(dx < 0 ? 1 : -1);
-        else if (dy > 100 && dy > Math.abs(dx) * 1.5) cerrarVisor();          // deslizar abajo cierra
+        if (dy > 100 && dy > Math.abs(dx) * 1.5) cerrarVisor();          // deslizar abajo cierra
         else if (Math.hypot(dx, dy) < 10 && !enImagen) cerrarVisor();         // toque o clic en el fondo
       }
       if (punteros.size === 0) {
@@ -646,12 +715,10 @@
     vEscena.addEventListener('pointerup', fin);
     vEscena.addEventListener('pointercancel', fin);
 
-    // Teclado: Esc cierra, flechas cambian de obra, +/- hacen zoom; el foco queda dentro del visor
+    // Teclado: Esc cierra, +/- hacen zoom; el foco queda dentro del visor
     document.addEventListener('keydown', e => {
       if (visor.hidden) return;
       if (e.key === 'Escape') { e.preventDefault(); cerrarVisor(); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); ir(1); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); ir(-1); }
       else if (e.key === '+' || e.key === '=') fijarZoom(zoom.s * 1.25);
       else if (e.key === '-') fijarZoom(zoom.s / 1.25);
       else if (e.key === '0') reiniciarZoom();
@@ -672,102 +739,20 @@
      8. Arranque
      --------------------------------------------------------------- */
   /* ---------------------------------------------------------------
-     7b. Movimiento con el móvil (giroscopio): desplaza la galería
+     7b. Móvil: aviso «Desliza para caminar» y altura real de la cabecera
      --------------------------------------------------------------- */
-  // Sensibilidad (ajustable)
-  const GIRO_ZONA_MUERTA = 6;      // grados de inclinación sin movimiento
-  const GIRO_GRADOS_MAX = 28;      // inclinación desde el cero que da velocidad máxima
-  const GIRO_VELOCIDAD_MAX = 16;   // px por fotograma a velocidad máxima
-  const GIRO_SUAVIZADO = 0.12;     // 0..1: cuánto se acerca la velocidad a la meta por fotograma
-  const GIRO_ESPERA_MS = 1500;     // sin eventos en este tiempo, no hay sensor
+  // Desaparece al primer deslizamiento o a los 6 s
+  function iniciarAvisoDeslizar() {
+    const aviso = $('#deslizar-aviso');
+    if (!aviso) return;
+    setTimeout(() => { aviso.hidden = true; }, 6000);
+    $('#pista').addEventListener('scroll', () => { aviso.hidden = true; }, { once: true, passive: true });
+  }
 
-  function iniciarMovimiento() {
-    const ui = $('#giro-ui');
-    const btn = $('#giro-control');
-    const aviso = $('#giro-aviso');
-    if (!ui || !btn || reduceMQ.matches || !('DeviceOrientationEvent' in window)) return;
-    if (!html.classList.contains('linterna-lista')) return;   // solo táctil o pantalla estrecha
-    html.classList.add('giro-ok');
-
-    let activo = false, recibido = false, enBucle = false, tocando = false;
-    let cero = null, meta = 0, vel = 0, esperaT = 0, avisoT = 0;
-
-    const decir = texto => {
-      aviso.textContent = texto;
-      aviso.hidden = false;
-      clearTimeout(avisoT);
-      avisoT = setTimeout(() => { aviso.hidden = true; }, 3000);
-    };
-    const angulo = () => {
-      const a = screen.orientation ? screen.orientation.angle : (window.orientation || 0);
-      return ((a % 360) + 360) % 360;
-    };
-
-    // Inclinación desde el cero -> velocidad meta (positiva = bajar)
-    const alOrientar = e => {
-      if (e.gamma == null && e.beta == null) return;
-      recibido = true;
-      if (!cero) cero = { g: e.gamma || 0, b: e.beta || 0 };   // la orientación al activar es el cero
-      const a = angulo();
-      let d, signo = 1;
-      if (a === 90 || a === 270) {                  // horizontal: beta; el signo depende del lado
-        d = (e.beta || 0) - cero.b;
-        signo = a === 90 ? 1 : -1;
-      } else {                                      // vertical: gamma (izquierda/derecha)
-        d = (e.gamma || 0) - cero.g;
-      }
-      d *= signo;
-      const exceso = Math.abs(d) <= GIRO_ZONA_MUERTA ? 0 : Math.abs(d) - GIRO_ZONA_MUERTA;
-      const frac = Math.min(1, exceso / (GIRO_GRADOS_MAX - GIRO_ZONA_MUERTA));
-      meta = Math.sign(d) * frac * GIRO_VELOCIDAD_MAX;
-    };
-
-    const bucle = () => {
-      if (!activo) { enBucle = false; return; }
-      if (document.hidden || tocando || html.classList.contains('visor-abierto')) { vel = 0; meta = 0; }
-      vel += (meta - vel) * GIRO_SUAVIZADO;
-      const max = document.documentElement.scrollHeight - innerHeight;
-      if ((vel < 0 && scrollY <= 0) || (vel > 0 && scrollY >= max)) { vel = 0; meta = 0; }   // extremos
-      if (Math.abs(vel) > 0.05) window.scrollBy(0, vel);
-      requestAnimationFrame(bucle);
-    };
-
-    // El dedo sobre la pantalla pausa (el control de la linterna no pausa)
-    window.addEventListener('pointerdown', e => { if (!e.target.closest('#giro-control')) tocando = true; }, { passive: true });
-    const soltarTacto = () => { tocando = false; };
-    window.addEventListener('pointerup', soltarTacto);
-    window.addEventListener('pointercancel', soltarTacto);
-
-    const apagar = () => {
-      activo = false;
-      meta = 0; vel = 0; cero = null;
-      window.removeEventListener('deviceorientation', alOrientar);
-      clearTimeout(esperaT);
-      btn.setAttribute('aria-pressed', 'false');
-      btn.textContent = 'Mover con el móvil';
-    };
-
-    btn.addEventListener('click', async () => {
-      if (activo) { apagar(); return; }
-      try {
-        // iOS: el permiso se pide dentro del propio clic
-        if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-          const r = await DeviceOrientationEvent.requestPermission();
-          if (r !== 'granted') { decir('Sin permiso de movimiento'); return; }
-        }
-      } catch (_) { decir('No se pudo activar el movimiento'); return; }
-
-      activo = true; recibido = false; cero = null; meta = 0; vel = 0;
-      window.addEventListener('deviceorientation', alOrientar, { passive: true });
-      btn.setAttribute('aria-pressed', 'true');
-      btn.textContent = 'Movimiento activo: apagar';
-      if (!enBucle) { enBucle = true; requestAnimationFrame(bucle); }
-      clearTimeout(esperaT);
-      esperaT = setTimeout(() => {
-        if (activo && !recibido) { apagar(); btn.disabled = true; decir('Este móvil no envía movimiento'); }
-      }, GIRO_ESPERA_MS);
-    });
-    window.addEventListener('orientationchange', () => { cero = null; meta = 0; });
+  // La cabecera puede ocupar una o dos filas: el carrusel empieza justo debajo
+  function medirCabecera() {
+    const c = $('.cabecera');
+    if (c) html.style.setProperty('--cab-h', c.offsetHeight + 'px');
   }
 
   function onChange(mq, fn) {
@@ -778,17 +763,22 @@
   function init() {
     construirSalas();
     construirIndice();
+    medirCabecera();
+    // El índice y las fuentes cambian la altura de la cabecera después de pintar
+    if (window.ResizeObserver) new ResizeObserver(medirCabecera).observe($('.cabecera'));
     iniciarEntrada();
     iniciarVisor();
     iniciarLinterna();
-    iniciarMovimiento();
     iniciarCursor();
+    iniciarAvisoDeslizar();
     aplicarModo();
 
     onChange(horizontalMQ, aplicarModo);
+    onChange(movilMQ, aplicarModo);
     onChange(reduceMQ, aplicarModo);
     window.addEventListener('scroll', programarActualizacion, { passive: true });
-    window.addEventListener('resize', programarActualizacion);
+    $('#pista').addEventListener('scroll', programarActualizacion, { passive: true });
+    window.addEventListener('resize', () => { medirCabecera(); programarActualizacion(); });
     programarActualizacion();
   }
 

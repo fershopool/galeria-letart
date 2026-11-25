@@ -9,6 +9,9 @@
  *   img     ruta relativa a la imagen (jpg) dentro de img/
  *   alt     texto alternativo descriptivo en español
  *   nota    opcional: se muestra en cursiva bajo la cédula
+ *   texto   texto libre de la artista; se lee al abrir la obra (vacío = no se muestra).
+ *           Para varios párrafos usa comillas invertidas: texto: `Primero.
+ *           Segundo.`
  *
  * Las medidas se leen como "ancho x alto" para calcular la proporción del cuadro.
  */
@@ -46,6 +49,7 @@ const OBRAS = [
     medidas: '10 × 15 cm',
     img: 'img/mascotas-husky.jpg',
     alt: 'Perro husky blanco y negro sentado en una terraza, con collar rojo y sillas de madera al fondo.',
+    texto: '',
   },
   {
     id: 'mascotas-tiburon-gatos',
@@ -55,6 +59,7 @@ const OBRAS = [
     medidas: '19 × 19 cm',
     img: 'img/mascotas-tiburon-gatos.jpg',
     alt: 'Tiburón con las fauces abiertas y dos gatos sobre su lomo, con barcos de vela al fondo.',
+    texto: '',
   },
   {
     id: 'mascotas-caniches',
@@ -64,6 +69,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/mascotas-caniches.jpg',
     alt: 'Retrato de dos perros: uno blanco de pelo rizado con moños azules en primer plano y otro café claro detrás, sobre fondo azul.',
+    texto: '',
   },
   {
     id: 'mascotas-gata-alas',
@@ -73,6 +79,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/mascotas-gata-alas.jpg',
     alt: 'Gata de pelaje oscuro moteado con alas blancas de hada, en el aire sobre un prado verde.',
+    texto: '',
   },
   {
     id: 'mascotas-gato-atigrado',
@@ -82,6 +89,7 @@ const OBRAS = [
     medidas: '30 × 20 cm',
     img: 'img/mascotas-gato-atigrado.jpg',
     alt: 'Gato atigrado gris de ojos verdes, de pie y mirando hacia arriba junto a un poste de cuerda.',
+    texto: '',
   },
   {
     id: 'mascotas-perro-gris',
@@ -91,6 +99,7 @@ const OBRAS = [
     medidas: '10 × 15 cm',
     img: 'img/mascotas-perro-gris.jpg',
     alt: 'Retrato de un perro gris de orejas oscuras, con collar azul, mirando hacia un lado.',
+    texto: '',
   },
   {
     id: 'mascotas-llaveros',
@@ -100,6 +109,7 @@ const OBRAS = [
     medidas: '3.5 × 5 cm cada uno',
     img: 'img/mascotas-llaveros.jpg',
     alt: 'Llaveros transparentes con retratos pintados de perros y gatos.',
+    texto: '',
   },
 
   // ---- NATURALEZA ----
@@ -111,6 +121,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/naturaleza-lirios.jpg',
     alt: 'Ramo de lirios rosados con capullos y hojas verdes, sobre fondo gris azulado.',
+    texto: '',
   },
   {
     id: 'naturaleza-paisaje',
@@ -120,6 +131,7 @@ const OBRAS = [
     medidas: '20 × 15 cm',
     img: 'img/naturaleza-paisaje.jpg',
     alt: 'Praderas verdes con un río, una gran nube blanca y montañas al fondo bajo un cielo azul.',
+    texto: '',
   },
 
   // ---- RÉPLICAS ----
@@ -131,6 +143,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/replicas-modigliani.jpg',
     alt: 'Joven de cabello largo y pelirrojo, con vestido azul, frente a un fondo naranja.',
+    texto: '',
     nota: 'Réplica de Amedeo Modigliani',
   },
   {
@@ -141,6 +154,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/replicas-renoir.jpg',
     alt: 'Niña de cabello castaño con moño oscuro, blusa blanca y faja negra, sentada y de frente al espectador.',
+    texto: '',
     nota: 'Réplica de Pierre-Auguste Renoir',
   },
 
@@ -153,6 +167,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-escarabajo.jpg',
     alt: 'Ilustración digital de un escarabajo de colores verde, azul y amarillo.',
+    texto: '',
   },
   {
     id: 'digital-pulpo',
@@ -162,6 +177,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-pulpo.jpg',
     alt: 'Ilustración digital de un pulpo morado y naranja sobre fondo blanco.',
+    texto: '',
   },
   {
     id: 'digital-cruz',
@@ -171,6 +187,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-cruz.jpg',
     alt: 'Ilustración en blanco y negro de una cruz con la frase «La cruz en el pecho calibra mi cuerpo».',
+    texto: '',
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -181,6 +198,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-corazon.jpg',
     alt: 'Ilustración en blanco y negro de un corazón dibujado a trazo, con la frase «Pero mi corazón nunca ha sido mío».',
+    texto: '',
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -191,6 +209,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-alas.jpg',
     alt: 'Ilustración en blanco y negro de dos formas de ala ornamentadas con una pluma, con la frase «Aquí tienes este homenaje».',
+    texto: '',
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -201,6 +220,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-perla.jpg',
     alt: 'Ilustración en blanco y negro de una perla dentro de una concha, con la frase «Es una perla, nadie se fía».',
+    texto: '',
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -211,6 +231,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/digital-mundo.jpg',
     alt: 'Ilustración en blanco y negro de un globo terráqueo dibujado a trazo, con la frase «Quisiera renegar de este mundo».',
+    texto: '',
     nota: 'Serie de ilustraciones digitales',
   },
 
@@ -223,6 +244,7 @@ const OBRAS = [
     medidas: '40 × 30 cm',
     img: 'img/libre-figura.jpg',
     alt: 'Figura femenina estilizada en tonos naranjas y rojos sobre un fondo negro.',
+    texto: '',
   },
   {
     id: 'libre-pastel',
@@ -232,6 +254,7 @@ const OBRAS = [
     medidas: '20 × 15 cm',
     img: 'img/libre-pastel.jpg',
     alt: 'Rebanada de pastel con moras en tonos morados sobre un fondo claro con manchas rosas.',
+    texto: '',
   },
   {
     id: 'libre-silla',
@@ -241,6 +264,7 @@ const OBRAS = [
     medidas: '20 × 15 cm',
     img: 'img/libre-silla.jpg',
     alt: 'Silla de madera con asiento blanco frente a una cortina roja.',
+    texto: '',
   },
 
   // ---- TEXTILES ----
@@ -252,6 +276,7 @@ const OBRAS = [
     medidas: '',
     img: 'img/textiles-chaqueta.jpg',
     alt: 'Chaqueta de mezclilla negra con un panel pintado de un sapo de camisa azul, la bandera de Puerto Rico y un corazón rojo.',
+    texto: '',
   },
 ];
 

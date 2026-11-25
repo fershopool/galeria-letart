@@ -485,14 +485,19 @@ html.js .entrada { position: fixed; inset: 0; }
   background: var(--crema);
   color: var(--tinta);
   box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
-  touch-action: none;            /* solo este control: el resto de la página sigue haciendo scroll */
+  touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
-  cursor: grab;
+  cursor: pointer;
 }
 .linterna-control svg { width: 28px; height: 28px; }
-html.linterna-agarrada .linterna-control { background: var(--amarillo); }
+.linterna-control[aria-pressed="true"] {
+  background: var(--amarillo);
+  box-shadow: 0 0 0 4px rgba(239, 228, 138, .35), 0 6px 18px rgba(0, 0, 0, .4);
+}
+.linterna-control .rayos { opacity: 0; transition: opacity .2s ease; }
+.linterna-control[aria-pressed="true"] .rayos { opacity: 1; }
 .linterna-pista {
   position: absolute;
   right: 0;
@@ -507,42 +512,6 @@ html.linterna-agarrada .linterna-control { background: var(--amarillo); }
   pointer-events: none;
 }
 html.linterna-lista:not(.en-portada):not(.en-contacto):not(.visor-abierto) .linterna-ui { display: block; }
-
-.giro-ui {
-  position: fixed;
-  left: max(16px, env(safe-area-inset-left));
-  bottom: max(20px, env(safe-area-inset-bottom));
-  z-index: 45;
-  display: none;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
-}
-.giro-control {
-  min-height: 56px;
-  min-width: 56px;
-  padding: 0 18px;
-  border-radius: 28px;
-  border: 1px solid rgba(245, 241, 230, .5);
-  background: var(--crema);
-  color: var(--tinta);
-  font: 800 13px/1 var(--fuente);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
-  touch-action: manipulation;
-  cursor: pointer;
-}
-.giro-control[aria-pressed="true"] { background: var(--salvia); }
-.giro-control:disabled { opacity: .5; }
-.giro-aviso {
-  padding: 8px 12px;
-  background: var(--tinta);
-  color: var(--texto-claro);
-  border: 1px solid rgba(245, 241, 230, .3);
-  font-size: 13px;
-}
-html.giro-ok.linterna-lista:not(.en-portada):not(.en-contacto):not(.visor-abierto) .giro-ui { display: flex; }
 
 .cursor {
   position: fixed;
@@ -599,15 +568,10 @@ html.cursor-custom #galeria * { cursor: none !important; }
 .visor-barra {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: calc(14px + env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 14px max(24px, env(safe-area-inset-left));
 }
 .visor-cerrar { min-width: 44px; }
-.visor-contador {
-  font-size: 13px;
-  letter-spacing: .2em;
-  font-variant-numeric: tabular-nums;
-}
 
 .visor-escena {
   position: relative;
@@ -642,23 +606,6 @@ html.cursor-custom #galeria * { cursor: none !important; }
   pointer-events: none;
 }
 
-.visor-flecha {
-  position: absolute;
-  top: 50%;
-  z-index: 2;
-  transform: translateY(-50%);
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 1px solid rgba(245, 241, 230, .35);
-  background: rgba(28, 28, 27, .7);
-  color: var(--texto-claro);
-  font: 400 28px/1 var(--fuente);
-  cursor: pointer;
-}
-.visor-flecha:hover { background: var(--texto-claro); color: var(--tinta); }
-.visor-ant { left: 16px; }
-.visor-sig { right: 16px; }
 
 .visor-info {
   display: grid;
@@ -679,6 +626,7 @@ html.cursor-custom #galeria * { cursor: none !important; }
 }
 .visor-ficha { font-size: 15px; margin-bottom: 4px; overflow-wrap: anywhere; }
 .visor-nota { font-size: 14px; font-style: italic; color: var(--muted); }
+.visor-artista { max-width: 60ch; margin-top: 10px; font-size: 15px; line-height: 1.5; white-space: pre-line; }
 .visor-accion {
   display: grid;
   justify-items: end;
@@ -759,9 +707,6 @@ html.cursor-custom #galeria * { cursor: none !important; }
   .visor-barra { padding: calc(10px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 10px max(16px, env(safe-area-inset-left)); }
   .visor-zoom { height: 100%; }
   .visor-img { max-height: 100%; }
-  .visor-flecha { width: 44px; height: 44px; font-size: 24px; }
-  .visor-ant { left: 8px; }
-  .visor-sig { right: 8px; }
   .visor-info {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -1126,3 +1071,218 @@ html[data-sala-activa="libre"] .cursor-disco { background: var(--tinta); color: 
 
 /* Modo apilado (móvil): el umbral ya va en flujo; las salas conservan su pared y suelo */
 html:not(.modo-horizontal) .sala::after { height: 14vh; }
+
+.deslizar-aviso { display: none; }
+
+/* ==========================================================================
+   Móvil y táctil estrecho (vertical y apaisado): carrusel de scroll nativo.
+   Una obra por pantalla centrada con su cédula debajo; el rótulo de cada sala
+   y el contacto son paradas. Escritorio (>=800px con puntero fino) no cambia.
+   ========================================================================== */
+html { --cab-h: 104px; }
+
+@media (max-width: 799px), (pointer: coarse) and (max-height: 500px) {
+  html { --img-max: max(96px, calc(100vh - var(--cab-h) - 200px)); }
+
+  .cabecera {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: calc(12px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 6px max(16px, env(safe-area-inset-left));
+    background: var(--cab-fondo);
+  }
+  .indice { order: 3; width: 100%; gap: 18px; }
+  .indice-item { font-size: 11px; letter-spacing: .14em; }
+
+  /* Pista: el único contenedor con scroll (horizontal), con paradas (snap) */
+  .galeria {
+    position: fixed;
+    top: var(--cab-h);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: auto;
+    overflow: hidden;
+  }
+  .pista {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    overflow-anchor: none;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pista::-webkit-scrollbar { display: none; }
+  /* El snap se activa al montar el carrusel (JS): si estuviera antes, el navegador fijaría
+     el contacto, que es lo único que hay al construir las salas, y saltaría al final */
+  html.modo-carrusel .pista { scroll-snap-type: x mandatory; }
+
+  /* Puerta entre salas: franja con el rótulo vertical */
+  html:not(.modo-horizontal) .umbral {
+    width: 11vw;
+    height: 100%;
+    padding-top: 0;
+    align-items: center;
+    border-bottom: 0;
+    box-shadow: inset -10px 0 14px -12px rgba(0, 0, 0, .6);
+    scroll-snap-align: start;
+  }
+  html:not(.modo-horizontal) .umbral-rotulo { writing-mode: vertical-rl; padding: 14px 8px; }
+
+  /* Sala: pared y suelo a toda la altura; su rótulo es una parada */
+  html:not(.modo-horizontal) .sala {
+    flex: none;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    height: 100%;
+    min-height: 0;
+    padding: 0;
+  }
+  html:not(.modo-horizontal) .sala-cabecera {
+    position: relative;
+    top: auto;
+    align-self: stretch;
+    flex: none;
+    width: 78vw;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 0 4vw;
+    scroll-snap-align: center;
+  }
+  html:not(.modo-horizontal) .sala-titulo {
+    writing-mode: horizontal-tb;
+    font-size: clamp(40px, 13vw, 64px);
+    line-height: .9;
+  }
+  html:not(.modo-horizontal) .sala-sub { writing-mode: horizontal-tb; font-size: 12px; letter-spacing: .2em; }
+
+  /* Obras: una por pantalla, centrada; la siguiente asoma */
+  html:not(.modo-horizontal) .sala-obras {
+    flex: none;
+    height: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 4vw;
+    padding: 0 11vw;
+  }
+  html:not(.modo-horizontal) .obra {
+    flex: none;
+    width: 78vw;
+    height: 100%;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 0;
+    scroll-snap-align: center;
+  }
+  html:not(.modo-horizontal) .obra-marco { width: 100%; padding: 12px; }
+  html:not(.modo-horizontal) .obra-btn { width: 100%; }
+  html:not(.modo-horizontal) .obra-btn img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: var(--img-max);
+    margin: 0 auto;
+  }
+  html:not(.modo-horizontal) .cedula {
+    width: 100%;
+    flex: none;
+    padding: 12px 2px 0;
+    border-left: 0;
+    border-top: 1px solid rgba(245, 241, 230, .25);
+  }
+  html.modo-vertical .obra,
+  html.modo-vertical .obra:not(.visible) { opacity: 1; transform: none; transition: none; }
+
+  /* Contacto: última parada, con su propio scroll si no cabe */
+  .sala-contacto {
+    flex: none;
+    width: 100vw;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scroll-snap-align: start;
+  }
+  .contacto-inner { margin: auto; width: 100%; max-width: 620px; }
+  .contacto-titulo { font-size: clamp(44px, 14vw, 72px); margin-bottom: 18px; }
+  .contacto-texto { font-size: 16px; margin-bottom: 22px; }
+
+  /* Linterna: sala oscura y haz cálido que deja el centro sin oscurecer */
+  .linterna {
+    background: radial-gradient(
+      circle min(95vw, 70dvh) at var(--x, 50%) var(--y, 50%),
+      rgba(255, 214, 150, .10) 0%,
+      rgba(255, 214, 150, 0) 38%,
+      rgba(0, 0, 0, .55) 62%,
+      rgba(0, 0, 0, .92) 100%
+    );
+  }
+  html.visor-abierto .linterna { opacity: 0 !important; }
+
+  .linterna-pista { width: max-content; max-width: calc(100vw - 32px); white-space: normal; text-align: right; }
+
+  /* Aviso «Desliza para caminar» */
+  .deslizar-aviso {
+    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: calc(14px + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    z-index: 2;
+    margin: 0;
+    padding: 10px 14px;
+    background: var(--crema);
+    color: var(--tinta);
+    font: 800 12px/1 var(--fuente);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+  .deslizar-aviso[hidden] { display: none !important; }
+
+  /* Apaisado (teléfono de lado): la cédula va a la derecha de la obra */
+  @media (max-height: 500px) and (orientation: landscape) {
+    html { --img-max: calc(100vh - var(--cab-h) - 40px); }
+    html:not(.modo-horizontal) .obra {
+      flex-direction: row;
+      align-items: center;
+      gap: 22px;
+      width: 80vw;
+      padding: 0;
+    }
+    html:not(.modo-horizontal) .obra-marco { width: auto; min-width: 0; }
+    html:not(.modo-horizontal) .obra-btn { width: auto; }
+    html:not(.modo-horizontal) .obra-btn img { max-width: calc(80vw - 300px); max-height: calc(100dvh - var(--cab-h) - 64px); }
+    html:not(.modo-horizontal) .obra,
+    html:not(.modo-horizontal) .obra-marco { margin-top: 0; margin-bottom: 0; translate: none; }
+    html:not(.modo-horizontal) .cedula {
+      width: 200px;
+      padding: 0 0 0 14px;
+      border-left: 1px solid rgba(245, 241, 230, .3);
+      border-top: 0;
+    }
+    .sala-titulo, html:not(.modo-horizontal) .sala-titulo { font-size: 40px; }
+    .contacto-titulo { font-size: 40px; margin-bottom: 10px; }
+    .contacto-texto { font-size: 14px; margin-bottom: 14px; }
+    .sala-contacto { padding: 16px 22px; }
+  }
+}

@@ -55,26 +55,26 @@
         </div>
       </section>
     </div>
+    <!-- Móvil: aviso para caminar por el carrusel (se oculta solo) -->
+    <p class="deslizar-aviso" id="deslizar-aviso">Desliza para caminar</p>
   </main>
 
   <!-- Visor de obra (lightbox) -->
   <div class="visor" id="visor" role="dialog" aria-modal="true" aria-labelledby="visor-titulo" hidden>
     <div class="visor-barra">
-      <span class="visor-contador" id="visor-contador">01 / 22</span>
       <button class="btn visor-cerrar" id="visor-cerrar" type="button" aria-label="Cerrar visor">Cerrar ✕</button>
     </div>
     <div class="visor-escena" id="visor-escena">
-      <button class="visor-flecha visor-ant" type="button" aria-label="Obra anterior">‹</button>
       <div class="visor-zoom" id="visor-zoom">
         <img class="visor-img" id="visor-img" alt="">
       </div>
-      <button class="visor-flecha visor-sig" type="button" aria-label="Obra siguiente">›</button>
     </div>
     <div class="visor-info">
       <div class="visor-texto">
         <h2 class="visor-titulo" id="visor-titulo"></h2>
         <p class="visor-ficha" id="visor-ficha"></p>
         <p class="visor-nota" id="visor-nota"></p>
+        <p class="visor-artista" id="visor-artista" hidden></p>
       </div>
       <div class="visor-accion">
         <p class="visor-consulta">Consulta disponibilidad y precio</p>
@@ -83,16 +83,12 @@
     </div>
   </div>
 
-  <!-- Controles táctiles (solo móvil / pantalla estrecha, en las salas): linterna y movimiento -->
+  <!-- Móvil: botón de linterna (enciende/apaga) y pista de la luz -->
   <div class="linterna-ui" id="linterna-ui">
-    <p class="linterna-pista" id="linterna-pista" hidden>Agarra la linterna</p>
-    <button class="linterna-control" id="linterna-control" type="button" aria-pressed="false" aria-label="Linterna, arrástrala para iluminar los cuadros">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v4H8z"/><path d="M9 7h6v10l-3 4-3-4z"/></svg>
+    <p class="linterna-pista" id="linterna-pista" hidden>Mueve el móvil o arrastra para iluminar</p>
+    <button class="linterna-control" id="linterna-control" type="button" aria-pressed="false" aria-label="Encender linterna">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3h8v4H8z"/><path d="M9 7h6v10l-3 4-3-4z"/><path class="rayos" d="M2 5h2M20 5h2M4.5 2.5l1.5 1.5M19.5 2.5l-1.5 1.5"/></svg>
     </button>
-  </div>
-  <div class="giro-ui" id="giro-ui">
-    <p class="giro-aviso" id="giro-aviso" role="status" hidden></p>
-    <button class="giro-control" id="giro-control" type="button" aria-pressed="false">Mover con el móvil</button>
   </div>
 
   <noscript><p class="sin-js">Esta galería necesita JavaScript para mostrar las obras.</p></noscript>
