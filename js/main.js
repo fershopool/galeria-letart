@@ -141,12 +141,17 @@
     const entrada = $('#entrada');
     const btn = $('#btn-entrar');
     html.classList.add('entrada-activa');
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
 
     const fin = () => {
       entrada.hidden = true;
       html.classList.remove('entrada-activa');
       programarActualizacion(); // quita en-portada sin esperar al primer deslizamiento
       if (tieneGSAP) ScrollTrigger.refresh();
+      // La visita empieza siempre en la primera sala, aunque se haya recargado a medio recorrido
+      window.scrollTo(0, 0);
+      $('#pista').scrollLeft = 0;
       $('#galeria').focus({ preventScroll: true });
     };
 
