@@ -99,6 +99,16 @@
         contenedor.appendChild(art);
       });
 
+      // Easter egg: el escarabajo (logo) escondido en cada sala lleva al Instagram
+      const bicho = document.createElement('a');
+      bicho.className = 'bicho';
+      bicho.href = INSTAGRAM;
+      bicho.target = '_blank';
+      bicho.rel = 'noopener';
+      bicho.setAttribute('aria-label', '¡Encontraste el escarabajo! Visitar el Instagram de la artista');
+      bicho.innerHTML = '<span class="bicho-cuerpo"></span><span class="bicho-aviso" aria-hidden="true">¡Me encontraste!</span>';
+      sec.appendChild(bicho);
+
       // Umbral (puerta) antes de cada sala, con su rótulo «Sala I», «Sala II»…
       const umbral = document.createElement('div');
       umbral.className = 'umbral';
