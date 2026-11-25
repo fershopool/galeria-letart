@@ -366,12 +366,9 @@
      --------------------------------------------------------------- */
   function iniciarLinterna() {
     const l = $('#linterna');
-    const ctrl = $('#linterna-control');
-    const aviso = $('#linterna-pista');
-    const galeria = $('#galeria');
     let tocando = false;
 
-    // Escritorio: la luz sigue al cursor o al dedo. En móvil la gobierna el botón (abajo a la derecha)
+    // La luz sigue al cursor o al dedo en pantallas anchas. En móvil no hay linterna
     const mover = e => {
       if (movil()) return;
       if (e.pointerType === 'touch' && !tocando) return;
@@ -394,110 +391,6 @@
       if (!e.relatedTarget && e.pointerType === 'mouse') l.classList.remove('activa');
     });
 
-    if (!ctrl) return;
-    html.classList.toggle('linterna-lista', movil() || window.matchMedia('(pointer: coarse)').matches);
-
-    // Móvil: botón que enciende/apaga. Encendida, la luz sigue el giro del móvil (relativo a
-    // la posición al encender) y el dedo. Sin sensor o sin permiso, funciona solo con el dedo.
-    const DEDO_ARRIBA = 72;      // px: la luz queda un poco por encima del dedo
-    const AVISO_MS = 4000;
-    const GRADOS_MEDIA_PANTALLA = 30;
-    let encendida = false, dedo = false, permisoPedido = false;
-    let raf = 0, avisoT = 0;
-    let origen = null;           // centro de la obra al encender
-    let base = null;             // orientación de referencia al encender
-    let ultima = null;           // última orientación recibida (aunque la luz esté apagada)
-    let cur = { x: 0, y: 0 }, tgt = { x: 0, y: 0 };
-
-    const apuntar = (x, y) => {
-      tgt.x = Math.min(innerWidth, Math.max(0, x));
-      tgt.y = Math.min(innerHeight, Math.max(0, y));
-    };
-    // Suavizado por fotograma; el bucle se detiene del todo cuando la luz está apagada
-    const pintar = () => {
-      cur.x += (tgt.x - cur.x) * 0.18;
-      cur.y += (tgt.y - cur.y) * 0.18;
-      l.style.setProperty('--x', cur.x.toFixed(1) + 'px');
-      l.style.setProperty('--y', cur.y.toFixed(1) + 'px');
-      raf = encendida ? requestAnimationFrame(pintar) : 0;
-    };
-
-    // Solo arriba/abajo: inclinar a los lados no mueve la luz (el eje horizontal es del dedo).
-    // En vertical manda beta; con el teléfono de lado, gamma.
-    const alOrientar = e => {
-      if (e.gamma == null && e.beta == null) return;
-      ultima = { g: e.gamma || 0, b: e.beta || 0 };
-      if (!encendida || !origen || dedo) return;
-      if (!base) base = { ...ultima };
-      const dg = ultima.g - base.g;
-      const db = ultima.b - base.b;
-      const a = screen.orientation ? screen.orientation.angle : (window.orientation || 0);
-      let my = db;                                        // signos de lado: revisar en un móvil real
-      if (a === 90) my = -dg;
-      else if (a === 270 || a === -90) my = dg;
-      else if (a === 180) my = -db;
-      // Hacia arriba (beta sube) la luz sube, como al apuntar una linterna
-      apuntar(tgt.x, origen.y - my * innerHeight / GRADOS_MEDIA_PANTALLA);
-    };
-    window.addEventListener('deviceorientation', alOrientar, { passive: true });
-    window.addEventListener('orientationchange', () => { base = null; });
-
-    // Arrastrar con el dedo sobre la galería mueve la luz; el swipe horizontal y el toque a la obra siguen igual
-    const mirarDedo = e => { if (encendida && dedo) apuntar(e.clientX, e.clientY - DEDO_ARRIBA); };
-    galeria.addEventListener('pointerdown', e => { if (encendida) { dedo = true; mirarDedo(e); } }, { passive: true });
-    galeria.addEventListener('pointermove', mirarDedo, { passive: true });
-    const soltarDedo = () => { dedo = false; };
-    window.addEventListener('pointerup', soltarDedo, { passive: true });
-    window.addEventListener('pointercancel', soltarDedo, { passive: true });
-
-    // La luz cae primero sobre la obra centrada
-    const centro = () => {
-      const img = elObras[centrado] ? elObras[centrado].querySelector('.obra-btn img') : null;
-      const r = img ? img.getBoundingClientRect() : null;
-      const x = r ? r.left + r.width / 2 : -1;
-      // Solo si la obra está a la vista; en un rótulo de sala, la luz va al centro de la pantalla
-      if (r && r.width > 0 && x > 0 && x < innerWidth) return { x, y: r.top + r.height / 2 };
-      return { x: innerWidth / 2, y: innerHeight / 2 };
-    };
-    const encender = () => {
-      encendida = true;
-      origen = centro();
-      cur = { ...origen };
-      tgt = { ...origen };
-      base = ultima ? { ...ultima } : null;
-      l.style.setProperty('--x', origen.x + 'px');
-      l.style.setProperty('--y', origen.y + 'px');
-      l.classList.add('activa');
-      html.classList.add('linterna-on');
-      ctrl.setAttribute('aria-pressed', 'true');
-      ctrl.setAttribute('aria-label', 'Apagar linterna');
-      aviso.hidden = false;
-      clearTimeout(avisoT);
-      avisoT = setTimeout(() => { aviso.hidden = true; }, AVISO_MS);
-      if (!raf) raf = requestAnimationFrame(pintar);
-    };
-    const apagar = () => {
-      encendida = false;
-      dedo = false;
-      cancelAnimationFrame(raf);
-      raf = 0;
-      clearTimeout(avisoT);
-      aviso.hidden = true;
-      l.classList.remove('activa');
-      html.classList.remove('linterna-on');
-      ctrl.setAttribute('aria-pressed', 'false');
-      ctrl.setAttribute('aria-label', 'Encender linterna');
-    };
-
-    ctrl.addEventListener('click', () => {
-      if (encendida) { apagar(); return; }
-      // iOS: el permiso de movimiento se pide dentro del propio toque; si se niega, sigue el dedo
-      if (!permisoPedido && typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        permisoPedido = true;
-        try { DeviceOrientationEvent.requestPermission().catch(() => {}); } catch (_) {}
-      }
-      encender();
-    });
   }
 
   /* ---------------------------------------------------------------

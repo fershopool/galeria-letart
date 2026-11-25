@@ -468,50 +468,6 @@ html.js .entrada { position: fixed; inset: 0; }
 .en-contacto .linterna { opacity: 0 !important; }
 
 /* Controles táctiles: se muestran en las salas (no en portada, contacto ni con el visor) */
-.linterna-ui {
-  position: fixed;
-  right: max(16px, env(safe-area-inset-right));
-  bottom: max(20px, env(safe-area-inset-bottom));
-  z-index: 45;
-  display: none;
-}
-.linterna-control {
-  width: 60px;
-  height: 60px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  border: 1px solid rgba(245, 241, 230, .5);
-  background: var(--crema);
-  color: var(--tinta);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, .4);
-  touch-action: manipulation;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  cursor: pointer;
-}
-.linterna-control svg { width: 28px; height: 28px; }
-.linterna-control[aria-pressed="true"] {
-  background: var(--amarillo);
-  box-shadow: 0 0 0 4px rgba(239, 228, 138, .35), 0 6px 18px rgba(0, 0, 0, .4);
-}
-.linterna-control .rayos { opacity: 0; transition: opacity .2s ease; }
-.linterna-control[aria-pressed="true"] .rayos { opacity: 1; }
-.linterna-pista {
-  position: absolute;
-  right: 0;
-  bottom: 72px;
-  white-space: nowrap;
-  padding: 10px 12px;
-  background: var(--crema);
-  color: var(--tinta);
-  font: 800 12px/1 var(--fuente);
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  pointer-events: none;
-}
-html.linterna-lista:not(.en-portada):not(.en-contacto):not(.visor-abierto) .linterna-ui { display: block; }
 
 .cursor {
   position: fixed;
@@ -744,7 +700,7 @@ html:not(.modo-horizontal) .obra {
 }
 html:not(.modo-horizontal) .obra-marco { width: 100%; }
 html:not(.modo-horizontal) .obra-marco::before { display: none; }
-html:not(.modo-horizontal) .obra-btn { width: 100%; }
+html:not(.modo-horizontal) .obra-btn { width: auto; }
 html:not(.modo-horizontal) .obra-btn img { width: 100%; height: auto; }
 html:not(.modo-horizontal) .cedula {
   width: auto;
@@ -1175,12 +1131,12 @@ html { --cab-h: 104px; }
     min-width: 0;
     flex-direction: row;
     align-items: center;
-    gap: 4vw;
-    padding: 0 11vw;
+    gap: 12vw;
+    padding: 0 22vw;
   }
   html:not(.modo-horizontal) .obra {
     flex: none;
-    width: 78vw;
+    width: 56vw;
     height: 100%;
     flex-direction: column;
     justify-content: center;
@@ -1189,13 +1145,13 @@ html { --cab-h: 104px; }
     padding: 12px 0;
     scroll-snap-align: center;
   }
-  html:not(.modo-horizontal) .obra-marco { width: 100%; padding: 12px; }
+  html:not(.modo-horizontal) .obra-marco { width: fit-content; max-width: 100%; margin-inline: auto; padding: 7px; }
   html:not(.modo-horizontal) .obra-btn { width: 100%; }
   html:not(.modo-horizontal) .obra-btn img {
     width: auto;
     height: auto;
     max-width: 100%;
-    max-height: var(--img-max);
+    max-height: min(var(--img-max), 34dvh);
     margin: 0 auto;
   }
   html:not(.modo-horizontal) .cedula {
@@ -1225,19 +1181,7 @@ html { --cab-h: 104px; }
   .contacto-titulo { font-size: clamp(44px, 14vw, 72px); margin-bottom: 18px; }
   .contacto-texto { font-size: 16px; margin-bottom: 22px; }
 
-  /* Linterna: sala oscura y haz cálido que deja el centro sin oscurecer */
-  .linterna {
-    background: radial-gradient(
-      circle min(95vw, 70dvh) at var(--x, 50%) var(--y, 50%),
-      rgba(255, 214, 150, .10) 0%,
-      rgba(255, 214, 150, 0) 38%,
-      rgba(0, 0, 0, .55) 62%,
-      rgba(0, 0, 0, .92) 100%
-    );
-  }
-  html.visor-abierto .linterna { opacity: 0 !important; }
-
-  .linterna-pista { width: max-content; max-width: calc(100vw - 32px); white-space: normal; text-align: right; }
+  .linterna { display: none; }
 
   /* Aviso «Desliza para caminar» */
   .deslizar-aviso {
@@ -1271,7 +1215,7 @@ html { --cab-h: 104px; }
     }
     html:not(.modo-horizontal) .obra-marco { width: auto; min-width: 0; }
     html:not(.modo-horizontal) .obra-btn { width: auto; }
-    html:not(.modo-horizontal) .obra-btn img { max-width: calc(80vw - 300px); max-height: calc(100dvh - var(--cab-h) - 64px); }
+    html:not(.modo-horizontal) .obra-btn img { max-width: calc(80vw - 300px); max-height: calc((100dvh - var(--cab-h)) * .62); }
     html:not(.modo-horizontal) .obra,
     html:not(.modo-horizontal) .obra-marco { margin-top: 0; margin-bottom: 0; translate: none; }
     html:not(.modo-horizontal) .cedula {
@@ -1297,7 +1241,7 @@ html { --cab-h: 104px; }
   place-items: center;
   left: var(--bx, 40%);
   bottom: var(--by, 3%);
-  animation: bicho-paseo var(--bt, 9s) ease-in-out infinite;
+  animation: bicho-paseo var(--bt, 9s) ease-in-out var(--bd, 0s) infinite;
 }
 .bicho-cuerpo {
   width: 34px;
@@ -1305,7 +1249,7 @@ html { --cab-h: 104px; }
   background: url('../img/portada-escarabajo.webp') center / contain no-repeat;
   filter: drop-shadow(0 0 5px rgba(248, 245, 234, .75));
   rotate: var(--br, 0deg);
-  animation: bicho-pata 1.1s ease-in-out infinite;
+  animation: bicho-pata .22s ease-in-out infinite, bicho-rumbo var(--bt, 9s) ease-in-out var(--bd, 0s) infinite;
 }
 .bicho-aviso {
   position: absolute;
@@ -1326,21 +1270,44 @@ html { --cab-h: 104px; }
 .bicho:hover .bicho-cuerpo { scale: 1.25; }
 /* Cada sala lo esconde en un sitio distinto y camina a su manera */
 #sala-mascotas   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  --bt: 9s;  }
-#sala-naturaleza .bicho { --bx: 62%; --by: 7%;  --br: -25deg; --bt: 7s;  }
-#sala-replicas   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; --bt: 12s; }
-#sala-digital    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; --bt: 6s;  }
-#sala-libre      .bicho { --bx: 29%; --by: 3%;  --br: 35deg;  --bt: 8s;  }
-#sala-textiles   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; --bt: 11s; }
+#sala-naturaleza .bicho { --bx: 62%; --by: 7%;  --br: -25deg; --bt: 7s;  --bd: -2s; }
+#sala-replicas   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; --bt: 12s; --bd: -5s; }
+#sala-digital    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; --bt: 6s;  --bd: -1s; }
+#sala-libre      .bicho { --bx: 29%; --by: 3%;  --br: 35deg;  --bt: 8s;  --bd: -4s; }
+#sala-textiles   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; --bt: 11s; --bd: -7s; }
+/* Corre, frena, gira, se escurre bajo el suelo, se asoma y vuelve */
 @keyframes bicho-paseo {
-  0%, 100% { transform: translate(0, 0); }
-  30% { transform: translate(26px, -5px); }
-  55% { transform: translate(30px, 0); }
-  80% { transform: translate(-14px, -3px); }
+  0%, 10% { translate: 0 0; scale: 1; opacity: 1; }
+  18% { translate: 70px -4px; }
+  24% { translate: 62px 0; }
+  30%, 36% { translate: 74px -2px; }
+  44% { translate: -55px 0; }
+  50%, 56% { translate: -62px -6px; scale: 1; opacity: 1; }
+  62%, 70% { translate: -62px 26px; scale: .35; opacity: 0; }      /* escondido */
+  74%, 78% { translate: -40px 12px; scale: .75; opacity: 1; }      /* se asoma */
+  81% { translate: -40px 24px; scale: .4; opacity: 0; }            /* ¡uy! */
+  88% { translate: 10px -10px; scale: 1.15; opacity: 1; }
+  94%, 100% { translate: 0 0; scale: 1; opacity: 1; }
+}
+/* La cabeza apunta hacia donde corre */
+@keyframes bicho-rumbo {
+  0%, 8% { rotate: var(--br, 0deg); }
+  11%, 24% { rotate: 90deg; }
+  30%, 35% { rotate: 20deg; }
+  38%, 50% { rotate: -90deg; }
+  56%, 70% { rotate: 180deg; }
+  74%, 80% { rotate: 0deg; }
+  84%, 90% { rotate: 90deg; }
+  96%, 100% { rotate: var(--br, 0deg); }
 }
 @keyframes bicho-pata {
-  0%, 100% { transform: rotate(-7deg); }
-  50% { transform: rotate(7deg); }
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
 }
+/* Al pillarlo (cursor, foco o dedo) se queda quieto para poder tocarlo */
+.bicho:hover, .bicho:focus-visible, .bicho:active,
+.bicho:hover .bicho-cuerpo, .bicho:focus-visible .bicho-cuerpo, .bicho:active .bicho-cuerpo { animation-play-state: paused; }
+.bicho:focus-visible { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .bicho, .bicho-cuerpo { animation: none; }
 }
