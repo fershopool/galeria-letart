@@ -145,7 +145,6 @@ html.js .entrada { position: fixed; inset: 0; }
 .entrada-escarabajo {
   width: min(30vw, 30vh);
   height: auto;
-  mix-blend-mode: multiply;
   animation: flotar 7s ease-in-out infinite;
 }
 @keyframes flotar {
