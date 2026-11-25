@@ -9,6 +9,10 @@
  *   img     ruta relativa a la imagen (jpg) dentro de img/
  *   alt     texto alternativo descriptivo en español
  *   nota    opcional: se muestra en cursiva bajo la cédula
+ *   proceso fotos y videos de cómo se hizo la obra. Copia los archivos a proceso/ y
+ *           lista sus rutas en orden: proceso: ['proceso/husky-1.jpg', 'proceso/husky-2.mp4']
+ *           Fotos: jpg, png o webp. Videos: mp4 o webm (los .mov del teléfono conviene
+ *           convertirlos a mp4). Vacío = no se muestra nada.
  *   texto   texto libre de la artista; se lee al abrir la obra (vacío = no se muestra).
  *           Para varios párrafos usa comillas invertidas: texto: `Primero.
  *           Segundo.`
@@ -50,6 +54,7 @@ const OBRAS = [
     img: 'img/mascotas-husky.jpg',
     alt: 'Perro husky blanco y negro sentado en una terraza, con collar rojo y sillas de madera al fondo.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-tiburon-gatos',
@@ -60,6 +65,7 @@ const OBRAS = [
     img: 'img/mascotas-tiburon-gatos.jpg',
     alt: 'Tiburón con las fauces abiertas y dos gatos sobre su lomo, con barcos de vela al fondo.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-caniches',
@@ -70,6 +76,7 @@ const OBRAS = [
     img: 'img/mascotas-caniches.jpg',
     alt: 'Retrato de dos perros: uno blanco de pelo rizado con moños azules en primer plano y otro café claro detrás, sobre fondo azul.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-gata-alas',
@@ -80,6 +87,7 @@ const OBRAS = [
     img: 'img/mascotas-gata-alas.jpg',
     alt: 'Gata de pelaje oscuro moteado con alas blancas de hada, en el aire sobre un prado verde.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-gato-atigrado',
@@ -90,6 +98,7 @@ const OBRAS = [
     img: 'img/mascotas-gato-atigrado.jpg',
     alt: 'Gato atigrado gris de ojos verdes, de pie y mirando hacia arriba junto a un poste de cuerda.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-perro-gris',
@@ -100,6 +109,7 @@ const OBRAS = [
     img: 'img/mascotas-perro-gris.jpg',
     alt: 'Retrato de un perro gris de orejas oscuras, con collar azul, mirando hacia un lado.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'mascotas-llaveros',
@@ -110,6 +120,7 @@ const OBRAS = [
     img: 'img/mascotas-llaveros.jpg',
     alt: 'Llaveros transparentes con retratos pintados de perros y gatos.',
     texto: '',
+    proceso: [],
   },
 
   // ---- NATURALEZA ----
@@ -122,6 +133,7 @@ const OBRAS = [
     img: 'img/naturaleza-lirios.jpg',
     alt: 'Ramo de lirios rosados con capullos y hojas verdes, sobre fondo gris azulado.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'naturaleza-paisaje',
@@ -132,6 +144,7 @@ const OBRAS = [
     img: 'img/naturaleza-paisaje.jpg',
     alt: 'Praderas verdes con un río, una gran nube blanca y montañas al fondo bajo un cielo azul.',
     texto: '',
+    proceso: [],
   },
 
   // ---- RÉPLICAS ----
@@ -144,6 +157,7 @@ const OBRAS = [
     img: 'img/replicas-modigliani.jpg',
     alt: 'Joven de cabello largo y pelirrojo, con vestido azul, frente a un fondo naranja.',
     texto: '',
+    proceso: [],
     nota: 'Réplica de Amedeo Modigliani',
   },
   {
@@ -155,6 +169,7 @@ const OBRAS = [
     img: 'img/replicas-renoir.jpg',
     alt: 'Niña de cabello castaño con moño oscuro, blusa blanca y faja negra, sentada y de frente al espectador.',
     texto: '',
+    proceso: [],
     nota: 'Réplica de Pierre-Auguste Renoir',
   },
 
@@ -168,6 +183,7 @@ const OBRAS = [
     img: 'img/digital-escarabajo.jpg',
     alt: 'Ilustración digital de un escarabajo de colores verde, azul y amarillo.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'digital-pulpo',
@@ -178,6 +194,7 @@ const OBRAS = [
     img: 'img/digital-pulpo.jpg',
     alt: 'Ilustración digital de un pulpo morado y naranja sobre fondo blanco.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'digital-cruz',
@@ -188,6 +205,7 @@ const OBRAS = [
     img: 'img/digital-cruz.jpg',
     alt: 'Ilustración en blanco y negro de una cruz con la frase «La cruz en el pecho calibra mi cuerpo».',
     texto: '',
+    proceso: [],
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -199,6 +217,7 @@ const OBRAS = [
     img: 'img/digital-corazon.jpg',
     alt: 'Ilustración en blanco y negro de un corazón dibujado a trazo, con la frase «Pero mi corazón nunca ha sido mío».',
     texto: '',
+    proceso: [],
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -210,6 +229,7 @@ const OBRAS = [
     img: 'img/digital-alas.jpg',
     alt: 'Ilustración en blanco y negro de dos formas de ala ornamentadas con una pluma, con la frase «Aquí tienes este homenaje».',
     texto: '',
+    proceso: [],
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -221,6 +241,7 @@ const OBRAS = [
     img: 'img/digital-perla.jpg',
     alt: 'Ilustración en blanco y negro de una perla dentro de una concha, con la frase «Es una perla, nadie se fía».',
     texto: '',
+    proceso: [],
     nota: 'Serie de ilustraciones digitales',
   },
   {
@@ -232,6 +253,7 @@ const OBRAS = [
     img: 'img/digital-mundo.jpg',
     alt: 'Ilustración en blanco y negro de un globo terráqueo dibujado a trazo, con la frase «Quisiera renegar de este mundo».',
     texto: '',
+    proceso: [],
     nota: 'Serie de ilustraciones digitales',
   },
 
@@ -245,6 +267,7 @@ const OBRAS = [
     img: 'img/libre-figura.jpg',
     alt: 'Figura femenina estilizada en tonos naranjas y rojos sobre un fondo negro.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'libre-pastel',
@@ -255,6 +278,7 @@ const OBRAS = [
     img: 'img/libre-pastel.jpg',
     alt: 'Rebanada de pastel con moras en tonos morados sobre un fondo claro con manchas rosas.',
     texto: '',
+    proceso: [],
   },
   {
     id: 'libre-silla',
@@ -265,6 +289,7 @@ const OBRAS = [
     img: 'img/libre-silla.jpg',
     alt: 'Silla de madera con asiento blanco frente a una cortina roja.',
     texto: '',
+    proceso: [],
   },
 
   // ---- TEXTILES ----
@@ -277,6 +302,7 @@ const OBRAS = [
     img: 'img/textiles-chaqueta.jpg',
     alt: 'Chaqueta de mezclilla negra con un panel pintado de un sapo de camisa azul, la bandera de Puerto Rico y un corazón rojo.',
     texto: '',
+    proceso: [],
   },
 ];
 

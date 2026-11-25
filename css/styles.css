@@ -1324,3 +1324,25 @@ html { --cab-h: 104px; }
   .visor .visor-artista.pendiente { display: block; font-style: italic; color: var(--muted); }
   .visor .visor-accion { justify-items: start; text-align: left; }
 }
+
+/* ---------- Visor: fotos y videos del proceso ---------- */
+.visor-img[hidden], .visor-video[hidden], .visor-proceso[hidden] { display: none !important; }
+.visor-video { max-width: 100%; max-height: calc(100dvh - 260px); }
+@media (min-width: 800px) and (min-height: 501px) { .visor .visor-video { max-height: calc(100dvh - 120px); } }
+.visor-proceso { margin-top: 20px; }
+.visor-proceso-titulo { margin-bottom: 8px; font-size: 13px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.visor-miniaturas { display: flex; flex-wrap: wrap; gap: 8px; }
+.visor-mini {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: #000;
+  color: var(--texto-claro);
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+.visor-mini img { width: 100%; height: 100%; object-fit: cover; }
+.visor-mini[aria-pressed="true"] { border-color: var(--naranja); }

@@ -507,6 +507,53 @@
   const vArtista = $('#visor-artista');
   const TEXTO_PENDIENTE = 'Aquí irá el texto de la artista sobre esta obra: su historia, en qué se inspiró o cómo la pintó.';
   const vConsulta = $('#visor-consulta');
+  const vVideo = $('#visor-video');
+  const vProceso = $('#visor-proceso');
+  const vMinis = $('#visor-miniaturas');
+  const ES_VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+
+  // Muestra en la escena la obra terminada, una foto del proceso o un video
+  function verMedio(src, alt) {
+    const video = ES_VIDEO.test(src);
+    vVideo.pause();
+    vVideo.hidden = !video;
+    vImg.hidden = video;
+    if (video) vVideo.src = src;
+    else {
+      vVideo.removeAttribute('src');
+      vImg.src = src;
+      vImg.alt = alt;
+    }
+    $$('.visor-mini', vMinis).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === src)));
+    reiniciarZoom();
+  }
+
+  // Miniaturas del proceso: la primera es siempre la obra terminada
+  function pintarProceso(obra) {
+    const medios = (obra.proceso || []).filter(Boolean);
+    vProceso.hidden = !medios.length;
+    vMinis.textContent = '';
+    if (!medios.length) return;
+    [obra.img, ...medios].forEach((src, n) => {
+      const nombre = n === 0 ? 'Obra terminada' : `${ES_VIDEO.test(src) ? 'Video' : 'Foto'} del proceso ${n}`;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'visor-mini';
+      b.dataset.src = src;
+      b.setAttribute('aria-label', nombre);
+      b.setAttribute('aria-pressed', String(n === 0));
+      if (ES_VIDEO.test(src)) b.innerHTML = '<span aria-hidden="true">▶</span>';
+      else {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = '';
+        img.loading = 'lazy';
+        b.appendChild(img);
+      }
+      b.addEventListener('click', () => verMedio(src, n === 0 ? obra.alt : `${nombre} de «${obra.titulo}»`));
+      vMinis.appendChild(b);
+    });
+  }
   const vCerrar = $('#visor-cerrar');
 
   let disparador = null;
@@ -526,8 +573,8 @@
   function pintarObra(i) {
     const obra = OBRAS[i];
     const numero = String(typeof WHATSAPP === 'string' ? WHATSAPP : '').replace(/\D/g, '');
-    vImg.src = obra.img;
-    vImg.alt = obra.alt;
+    pintarProceso(obra);
+    verMedio(obra.img, obra.alt);
     vTitulo.textContent = obra.titulo;
     vFicha.textContent = [obra.tecnica, obra.medidas].filter(Boolean).join(' · ');
     vNota.textContent = obra.nota || '';
@@ -584,6 +631,7 @@
   function cerrarVisor(desdeHistorial) {
     if (visor.hidden) return;
     visor.hidden = true;
+    vVideo.pause();
     html.classList.remove('visor-abierto');
     if (desdeHistorial !== true && history.state && history.state.visor) history.back();
     if (disparador && document.contains(disparador)) disparador.focus({ preventScroll: true });
@@ -640,6 +688,7 @@
 
     // Puntero: pellizco (dos dedos), arrastre (ampliada) y deslizar abajo o tocar el fondo para cerrar
     vEscena.addEventListener('pointerdown', e => {
+      if (e.target === vVideo) return;          // los controles del video reciben el puntero
       vEscena.setPointerCapture(e.pointerId);
       punteros.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY });
       if (punteros.size === 2) {
