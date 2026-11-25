@@ -10,17 +10,23 @@ permissions:
 concurrency:
   group: pages
   cancel-in-progress: false
+# Dos trabajos: desplegar en el mismo trabajo que sube el artefacto fallaba a veces con
+# «No artifacts named github-pages», porque GitHub aún no lo listaba.
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4
