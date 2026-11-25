@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Camila Pérez · Portafolio artístico</title>
+  <meta name="description" content="Portafolio de Camila Pérez (@letart.arlet): pinturas al óleo y acrílico, mascotas, naturaleza, réplicas, arte digital y textiles. Consulta disponibilidad de obra y encargos.">
+  <meta name="theme-color" content="#1C1C1B">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231C1C1B'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='20' text-anchor='middle' fill='%23F8F5EA'%3EC%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Marca la página como "con JS" antes de pintar: la portada fija solo existe si el script corre. -->
+  <script>document.documentElement.classList.add('js');</script>
+</head>
+<body>
+  <a class="saltar" href="#galeria">Saltar a la galería</a>
+
+  <!-- Cursor personalizado (solo puntero fino) y linterna sobre las salas -->
+  <div class="cursor" id="cursor" aria-hidden="true"><div class="cursor-disco"><span>VER</span></div></div>
+  <div class="linterna" id="linterna" aria-hidden="true"></div>
+
+  <header class="cabecera">
+    <a class="marca" href="#entrada">letart.arlet</a>
+    <nav class="indice" id="indice" aria-label="Índice de salas"></nav>
+    <span class="contador" id="contador" aria-hidden="true">00 / 00</span>
+  </header>
+  <div class="progreso" aria-hidden="true"><span id="progreso-barra"></span></div>
+
+  <!-- Portada: crema, se abre como cortina al entrar -->
+  <section class="entrada" id="entrada" aria-labelledby="entrada-titulo">
+    <div class="entrada-contenido">
+      <h1 class="entrada-titulo" id="entrada-titulo">PORTAFOLIO<br>ARTÍSTICO</h1>
+      <img class="entrada-escarabajo" src="img/digital-escarabajo.jpg" alt="Ilustración digital de un escarabajo de colores verde, azul y amarillo." width="900" height="900">
+      <p class="entrada-firma">Camila Pérez · <a href="https://instagram.com/letart.arlet" target="_blank" rel="noopener">@letart.arlet</a></p>
+      <button class="btn btn-entrar" id="btn-entrar" type="button">ENTRAR A LA GALERÍA</button>
+    </div>
+  </section>
+
+  <main class="galeria" id="galeria" tabindex="-1" aria-label="Galería de obras">
+    <!-- Fondo decorativo: el escarabajo repetido, muy tenue (textura CSS, sin alt) -->
+    <div class="capa-fondo" aria-hidden="true"></div>
+    <div class="pista" id="pista">
+      <!-- Las salas y obras se generan desde js/data.js (js/main.js). -->
+      <section class="sala-contacto" id="contacto" aria-labelledby="contacto-titulo">
+        <div class="contacto-inner">
+          <p class="contacto-sub">ENCARGOS</p>
+          <h2 class="contacto-titulo" id="contacto-titulo" tabindex="-1">PINTA A TU MASCOTA</h2>
+          <p class="contacto-texto">¿Tienes una mascota que merece un cuadro? Escríbeme y platicamos sobre tu encargo.</p>
+          <div class="contacto-acciones">
+            <a class="btn btn-primario" id="contacto-wa" href="#" target="_blank" rel="noopener" hidden>Escribir por WhatsApp</a>
+            <a class="btn" href="https://instagram.com/letart.arlet" target="_blank" rel="noopener">Instagram · @letart.arlet</a>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Visor de obra (lightbox) -->
+  <div class="visor" id="visor" role="dialog" aria-modal="true" aria-labelledby="visor-titulo" hidden>
+    <div class="visor-barra">
+      <span class="visor-contador" id="visor-contador">01 / 22</span>
+      <button class="btn" id="visor-cerrar" type="button" aria-label="Cerrar visor">CERRAR ×</button>
+    </div>
+    <div class="visor-escena" id="visor-escena">
+      <button class="visor-flecha visor-ant" type="button" aria-label="Obra anterior">‹</button>
+      <div class="visor-zoom" id="visor-zoom">
+        <img class="visor-img" id="visor-img" alt="">
+      </div>
+      <button class="visor-flecha visor-sig" type="button" aria-label="Obra siguiente">›</button>
+    </div>
+    <div class="visor-info">
+      <div class="visor-texto">
+        <h2 class="visor-titulo" id="visor-titulo"></h2>
+        <p class="visor-ficha" id="visor-ficha"></p>
+        <p class="visor-nota" id="visor-nota"></p>
+      </div>
+      <div class="visor-accion">
+        <p class="visor-consulta">Consulta disponibilidad y precio</p>
+        <a class="btn btn-primario" id="visor-consulta" href="#" target="_blank" rel="noopener">Consultar por WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <noscript><p class="sin-js">Esta galería necesita JavaScript para mostrar las obras.</p></noscript>
+
+  <!-- GSAP + ScrollTrigger (opcional: sin ellos la galería se ve en vertical) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/main.js" defer></script>
+</body>
+</html>

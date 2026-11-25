@@ -1,0 +1,765 @@
+/* ==========================================================================
+   Galería · Camila Pérez (letart.arlet)
+   Paleta del portafolio como tokens. Escritorio: salas en horizontal (GSAP pin).
+   Móvil o movimiento reducido: layout vertical apilado.
+   ========================================================================== */
+
+:root {
+  --crema: #F8F5EA;
+  --carbon: #444444;
+  --carbon-profundo: #2B2B29;
+  --tinta: #1C1C1B;
+  --texto-claro: #F5F1E6;
+  --salvia: #7FA35A;
+  --turquesa: #7DA7C4;
+  --naranja: #E8A04A;
+  --amarillo: #EFE48A;
+
+  /* Texto secundario sobre carbón (contraste AA) */
+  --muted: #CFC8B4;
+
+  --fuente: 'Archivo', 'Inter Tight', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --foco: var(--naranja);
+}
+
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+[hidden] { display: none !important; }
+
+html {
+  background: var(--tinta);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--carbon-profundo);
+  color: var(--texto-claro);
+  font-family: var(--fuente);
+  font-weight: 400;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+html.entrada-activa,
+html.visor-abierto { overflow: hidden; }
+
+img { display: block; max-width: 100%; }
+
+h1, h2, h3, p { margin: 0; }
+
+:focus { outline: none; }
+:focus-visible {
+  outline: 2px solid var(--foco);
+  outline-offset: 4px;
+}
+
+.sin-js { padding: 24px; text-align: center; }
+
+/* Enlace de salto: solo visible con foco */
+.saltar {
+  position: fixed;
+  left: 16px;
+  top: -80px;
+  z-index: 200;
+  background: var(--crema);
+  color: var(--tinta);
+  padding: 10px 16px;
+  font-weight: 800;
+  transition: top .2s;
+}
+.saltar:focus { top: 12px; }
+
+/* Subtítulo: mayúsculas, interletrado amplio, subrayado fino */
+.subtitulo,
+.sala-sub,
+.contacto-sub {
+  text-transform: uppercase;
+  letter-spacing: .32em;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 6px;
+}
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 12px 20px;
+  border: 1px solid var(--texto-claro);
+  background: transparent;
+  color: var(--texto-claro);
+  font: 800 13px/1 var(--fuente);
+  font-stretch: 62%;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .25s, color .25s;
+}
+.btn:hover { background: var(--texto-claro); color: var(--tinta); }
+.btn-primario { background: var(--crema); border-color: var(--crema); color: var(--tinta); }
+.btn-primario:hover { background: var(--salvia); border-color: var(--salvia); color: var(--tinta); }
+
+/* ---------- Portada ---------- */
+.entrada {
+  --foco: var(--tinta);
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--crema);
+  color: var(--tinta);
+  text-align: center;
+  overflow: hidden;
+  z-index: 100;
+}
+/* Con JS la portada queda fija encima de la galería, que está debajo */
+html.js .entrada { position: fixed; inset: 0; }
+
+.entrada-contenido {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(12px, 3vh, 28px);
+  will-change: transform, opacity;
+}
+
+.entrada-titulo {
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: clamp(56px, min(15vw, 22vh), 240px);
+  line-height: .82;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+}
+
+.entrada-escarabajo {
+  width: min(30vw, 30vh);
+  height: auto;
+  mix-blend-mode: multiply;
+  animation: flotar 7s ease-in-out infinite;
+}
+@keyframes flotar {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.entrada-firma {
+  font-size: 15px;
+  letter-spacing: .06em;
+}
+.entrada-firma a { color: var(--tinta); text-decoration-color: var(--salvia); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+.btn-entrar {
+  --foco: var(--tinta);
+  border-color: var(--tinta);
+  color: var(--tinta);
+  padding: 16px 34px;
+  letter-spacing: .24em;
+}
+.btn-entrar:hover { background: var(--tinta); color: var(--crema); }
+
+/* ---------- Cabecera, índice y progreso ---------- */
+.cabecera {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 24px;
+  background: linear-gradient(to bottom, rgba(28, 28, 27, .9), rgba(28, 28, 27, 0));
+  color: var(--texto-claro);
+}
+
+.marca {
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: 15px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--texto-claro);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.indice {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  min-width: 0;
+}
+.indice::-webkit-scrollbar { display: none; }
+
+.indice-item {
+  flex: none;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: 700 12px/1 var(--fuente);
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 1px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+.indice-item:hover { color: var(--texto-claro); }
+.indice-item[aria-current="true"] {
+  color: var(--texto-claro);
+  border-bottom-color: var(--amarillo);
+}
+
+.contador {
+  flex: none;
+  font-size: 13px;
+  letter-spacing: .2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-claro);
+}
+
+.progreso {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  height: 2px;
+  background: rgba(245, 241, 230, .12);
+  pointer-events: none;
+}
+.progreso span {
+  display: block;
+  height: 100%;
+  background: var(--amarillo);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* ---------- Galería ---------- */
+.galeria {
+  position: relative;
+  background: radial-gradient(ellipse at center, var(--carbon) 0%, var(--carbon-profundo) 70%);
+}
+
+/* El escarabajo repetido en horizontal, difuminado y muy tenue (textura de fondo) */
+.capa-fondo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url('../img/digital-escarabajo.jpg');
+  background-repeat: repeat-x;
+  background-position: 0 50%;
+  background-size: auto 62vh;
+  filter: invert(1) blur(18px);
+  opacity: .08;
+  mix-blend-mode: screen;
+}
+
+.pista {
+  position: relative;
+  z-index: 1;
+}
+
+/* Salas: cada una es una "habitación" en el recorrido */
+.sala {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sala-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: none;
+}
+
+.sala-titulo {
+  writing-mode: vertical-rl;
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: clamp(64px, 15vh, 200px);
+  line-height: .82;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  color: var(--texto-claro);
+  white-space: nowrap;
+}
+.sala-titulo:focus { outline: none; }
+
+.sala-sub {
+  writing-mode: vertical-rl;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.sala-obras {
+  display: flex;
+  align-items: center;
+  gap: 6vw;
+  min-width: 0;
+}
+
+/* Línea fina horizontal que recorre la pared: une las salas entre sí */
+.sala::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 58%;
+  height: 1px;
+  background: rgba(245, 241, 230, .12);
+  pointer-events: none;
+}
+
+/* Obra colgada: cordel, marco sutil y sombra */
+.obra {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 22px;
+  flex: none;
+}
+
+.obra-marco {
+  --c: 1;
+  position: relative;
+  padding: 12px;
+  background: var(--tinta);
+  box-shadow:
+    inset 0 0 0 1px rgba(245, 241, 230, .06),
+    0 40px 60px -28px rgba(0, 0, 0, .85);
+}
+/* Cordel que cuelga del techo */
+.obra-marco::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  width: 1px;
+  height: 30vh;
+  background: rgba(245, 241, 230, .18);
+}
+
+.obra-btn {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: var(--carbon-profundo);
+  cursor: zoom-in;
+}
+/* Alto según el tamaño de la obra (--cm); el ancho sigue la proporción real de la imagen.
+   Al cargar cambia el ancho y main.js recalcula el recorrido horizontal. */
+.obra-btn img {
+  width: auto;
+  height: clamp(150px, calc(var(--cm, 40) * 1.1vh), 64vh);
+  background: var(--carbon-profundo);
+  transition: opacity .6s ease;
+}
+.obra-btn:focus-visible { outline-offset: 6px; }
+
+/* Cédula de museo, al lado del cuadro */
+.cedula {
+  width: 176px;
+  flex: none;
+  padding: 0 0 4px 14px;
+  border-left: 1px solid rgba(245, 241, 230, .3);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--texto-claro);
+}
+.cedula-num {
+  margin-bottom: 8px;
+  font-size: 11px;
+  letter-spacing: .3em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cedula-titulo {
+  margin-bottom: 8px;
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: 17px;
+  line-height: 1.1;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+.cedula p + p { margin-top: 4px; }
+.cedula-medidas { color: var(--muted); }
+.cedula-nota { font-style: italic; color: var(--muted); }
+
+/* Escala y brillo según el cuadro esté centrado (solo horizontal; --c lo fija main.js) */
+.modo-horizontal .obra-marco {
+  transform: scale(calc(1.035 - .07 * var(--c)));
+  filter: brightness(calc(1 - .3 * var(--c)));
+}
+
+/* Sala de contacto: crema, cierra el recorrido */
+.sala-contacto {
+  --foco: var(--tinta);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 8vw;
+  background: var(--crema);
+  color: var(--tinta);
+}
+.sala-contacto .btn { color: var(--tinta); border-color: var(--tinta); }
+.sala-contacto .btn:hover { background: var(--tinta); color: var(--crema); }
+.sala-contacto .btn-primario { background: var(--tinta); border-color: var(--tinta); color: var(--crema); }
+.sala-contacto .btn-primario:hover { background: var(--salvia); border-color: var(--salvia); color: var(--tinta); }
+
+.contacto-inner { max-width: 620px; }
+.contacto-sub { font-size: 13px; font-weight: 500; margin-bottom: 20px; }
+.contacto-titulo {
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: clamp(56px, 9vw, 140px);
+  line-height: .84;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  margin-bottom: 28px;
+}
+.contacto-titulo:focus { outline: none; }
+.contacto-texto { font-size: 18px; margin-bottom: 32px; max-width: 46ch; }
+.contacto-acciones { display: flex; flex-wrap: wrap; gap: 12px; }
+
+/* ---------- Linterna y cursor (solo escritorio) ---------- */
+.linterna {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .8s ease;
+  background: radial-gradient(
+    circle clamp(180px, 30vw, 420px) at var(--x, 50%) var(--y, 50%),
+    rgba(248, 245, 234, .12) 0%,
+    rgba(0, 0, 0, 0) 55%,
+    rgba(0, 0, 0, .5) 100%
+  );
+}
+.linterna.activa { opacity: 1; }
+.en-contacto .linterna { opacity: 0 !important; }
+
+.cursor {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 70;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .3s;
+  will-change: transform;
+}
+.cursor.visible { opacity: 1; }
+
+.cursor-disco {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--crema);
+  color: var(--tinta);
+  font: 800 12px/1 var(--fuente);
+  letter-spacing: .2em;
+  transition: width .35s, height .35s, margin .35s, background .3s;
+}
+.cursor-disco span { opacity: 0; transition: opacity .2s; }
+.cursor.es-ver .cursor-disco {
+  width: 84px;
+  height: 84px;
+  margin: -42px 0 0 -42px;
+}
+.cursor.es-ver .cursor-disco span { opacity: 1; }
+.en-contacto .cursor-disco { background: var(--tinta); color: var(--crema); }
+
+/* Puntero personalizado solo dentro de la galería */
+html.cursor-custom #galeria,
+html.cursor-custom #galeria * { cursor: none !important; }
+
+/* ---------- Visor ---------- */
+.visor {
+  --foco: var(--naranja);
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--tinta);
+  color: var(--texto-claro);
+}
+
+.visor-barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+}
+.visor-contador {
+  font-size: 13px;
+  letter-spacing: .2em;
+  font-variant-numeric: tabular-nums;
+}
+
+.visor-escena {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  touch-action: none;
+  cursor: zoom-in;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.visor-escena.ampliada { cursor: grab; }
+.visor-escena.ampliada:active { cursor: grabbing; }
+
+.visor-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  will-change: transform;
+}
+.visor-img {
+  max-width: 92vw;
+  max-height: calc(100vh - 260px);
+  max-height: calc(100dvh - 260px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.visor-flecha {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translateY(-50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 241, 230, .35);
+  background: rgba(28, 28, 27, .7);
+  color: var(--texto-claro);
+  font: 400 28px/1 var(--fuente);
+  cursor: pointer;
+}
+.visor-flecha:hover { background: var(--texto-claro); color: var(--tinta); }
+.visor-ant { left: 16px; }
+.visor-sig { right: 16px; }
+
+.visor-info {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 24px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid rgba(245, 241, 230, .14);
+}
+.visor-titulo {
+  margin-bottom: 8px;
+  font-weight: 800;
+  font-stretch: 62%;
+  font-size: 30px;
+  line-height: 1.05;
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+.visor-ficha { font-size: 15px; margin-bottom: 4px; }
+.visor-nota { font-size: 14px; font-style: italic; color: var(--muted); }
+.visor-accion {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  text-align: right;
+}
+.visor-consulta {
+  font-size: 13px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- Escritorio: salas en horizontal (GSAP pin) ---------- */
+.modo-horizontal .galeria {
+  height: 100vh;
+  overflow: hidden;
+}
+.modo-horizontal .pista {
+  display: flex;
+  width: max-content;
+  height: 100vh;
+  will-change: transform;
+}
+.modo-horizontal .sala {
+  flex: none;
+  min-width: 100vw;
+  height: 100vh;
+  gap: 4vw;
+  padding: 0 8vw 0 0;
+}
+.modo-horizontal .sala-cabecera {
+  align-self: stretch;
+  padding-left: 4.5vw;
+}
+.modo-horizontal .sala-titulo { font-size: clamp(64px, 15vh, 200px); }
+.modo-horizontal .sala-sub { font-size: 14px; }
+.modo-horizontal .sala-obras {
+  gap: 6vw;
+  padding-right: 2vw;
+}
+.modo-horizontal .obra-marco {
+  will-change: transform, filter;
+}
+.modo-horizontal .sala-contacto {
+  flex: none;
+  min-width: 100vw;
+  height: 100vh;
+}
+
+/* ---------- Vertical (móvil, movimiento reducido, sin GSAP) ---------- */
+.modo-vertical .obra:not(.visible) {
+  opacity: 0;
+  transform: translateY(28px);
+}
+.modo-vertical .obra {
+  transition: opacity .9s ease, transform .9s cubic-bezier(.2, .7, .2, 1);
+}
+
+@media (max-width: 799px) {
+  .linterna { display: none; }
+
+  .cabecera {
+    flex-wrap: wrap;
+    row-gap: 6px;
+    padding: 12px 16px 6px;
+    background: var(--tinta);   /* sólido: el texto no se mezcla con las obras al pasar */
+  }
+  .indice { order: 3; width: 100%; gap: 18px; }
+  .indice-item { font-size: 11px; letter-spacing: .14em; }
+
+  html:not(.modo-horizontal) .sala-titulo { font-size: 52px; }
+  html:not(.modo-horizontal) .sala-sub { font-size: 11px; letter-spacing: .24em; }
+
+  .sala-contacto { padding: 120px 16px 80px; min-height: 100vh; min-height: 100dvh; }
+  .contacto-acciones .btn { flex: 1 1 100%; }
+
+  .visor-barra { padding: 12px 16px; }
+  .visor-img {
+    max-height: calc(100vh - 360px);
+    max-height: calc(100dvh - 360px);
+  }
+  .visor-flecha { width: 44px; height: 44px; font-size: 24px; }
+  .visor-ant { left: 8px; }
+  .visor-sig { right: 8px; }
+  .visor-info {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 14px 16px 18px;
+  }
+  .visor-titulo { font-size: 24px; }
+  .visor-accion { justify-items: stretch; text-align: left; }
+  .visor-accion .btn { width: 100%; }
+}
+
+/* ---------- Salas apiladas: móvil, movimiento reducido o sin GSAP ----------
+   Se aplica siempre que no esté activo el modo horizontal. */
+html:not(.modo-horizontal) .sala {
+  align-items: flex-start;
+  gap: 14px;
+  min-height: 0;
+  padding: 112px 16px 64px;
+}
+html:not(.modo-horizontal) .sala::before { display: none; }
+html:not(.modo-horizontal) .sala-cabecera { position: sticky; top: 112px; align-self: flex-start; }
+html:not(.modo-horizontal) .sala-obras {
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 56px;
+}
+html:not(.modo-horizontal) .obra {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+}
+html:not(.modo-horizontal) .obra-marco { width: 100%; }
+html:not(.modo-horizontal) .obra-marco::before { display: none; }
+html:not(.modo-horizontal) .obra-btn { width: 100%; }
+html:not(.modo-horizontal) .obra-btn img { width: 100%; height: auto; }
+html:not(.modo-horizontal) .cedula {
+  width: auto;
+  padding: 12px 0 0;
+  border-left: 0;
+  border-top: 1px solid rgba(245, 241, 230, .25);
+}
+
+/* En escritorio sin recorrido horizontal: cuadro y cédula en fila, columna centrada a la izquierda */
+@media (min-width: 800px) {
+  html:not(.modo-horizontal) .sala {
+    gap: 4vw;
+    padding: 120px 6vw 96px 4vw;
+  }
+  html:not(.modo-horizontal) .sala-obras {
+    flex: 0 1 980px;
+    gap: 72px;
+  }
+  html:not(.modo-horizontal) .obra {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 28px;
+  }
+  html:not(.modo-horizontal) .obra-marco { width: auto; }
+  html:not(.modo-horizontal) .obra-btn { width: auto; }
+  html:not(.modo-horizontal) .obra-btn img { width: auto; height: clamp(150px, calc(var(--cm, 40) * 1.1vh), 64vh); }
+  html:not(.modo-horizontal) .cedula {
+    width: 176px;
+    padding: 0 0 4px 14px;
+    border-left: 1px solid rgba(245, 241, 230, .3);
+    border-top: 0;
+  }
+  html:not(.modo-horizontal) .sala-cabecera { top: 120px; }
+}
+
+/* ---------- Entrada con cortina (sin JS, la portada es normal) ---------- */
+html:not(.js) .entrada { position: relative; }
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .entrada-escarabajo { animation: none; }
+}
