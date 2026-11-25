@@ -505,6 +505,7 @@
   const vFicha = $('#visor-ficha');
   const vNota = $('#visor-nota');
   const vArtista = $('#visor-artista');
+  const TEXTO_PENDIENTE = 'Aquí irá el texto de la artista sobre esta obra: su historia, en qué se inspiró o cómo la pintó.';
   const vConsulta = $('#visor-consulta');
   const vCerrar = $('#visor-cerrar');
 
@@ -531,8 +532,10 @@
     vFicha.textContent = [obra.tecnica, obra.medidas].filter(Boolean).join(' · ');
     vNota.textContent = obra.nota || '';
     vNota.hidden = !obra.nota;
-    vArtista.textContent = obra.texto || '';
-    vArtista.hidden = !obra.texto;
+    // Sin texto aún: en escritorio se muestra un ejemplo señalando dónde irá (en móvil no)
+    vArtista.textContent = obra.texto || TEXTO_PENDIENTE;
+    vArtista.classList.toggle('pendiente', !obra.texto);
+    vArtista.hidden = false;
     vConsulta.href = enlaceConsulta(obra);
     vConsulta.textContent = numero ? 'Consultar por WhatsApp' : 'Consultar en Instagram';
     vConsulta.setAttribute('aria-label', `Consultar disponibilidad y precio de «${obra.titulo}»`);

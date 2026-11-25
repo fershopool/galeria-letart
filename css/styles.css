@@ -1301,3 +1301,26 @@ html { --cab-h: 104px; }
   .sala .obra { top: calc(var(--alt, 0) * 13dvh); }
 }
 @media (max-height: 500px) { .sala .obra { top: 0; } }
+
+/* Visor en escritorio: la pintura a la izquierda y, a un lado, la ficha con el texto de la artista */
+.visor-artista.pendiente { display: none; }
+@media (min-width: 800px) and (min-height: 501px) {
+  .visor { grid-template-columns: minmax(0, 1fr) clamp(300px, 32vw, 460px); grid-template-rows: auto minmax(0, 1fr); }
+  .visor .visor-barra { grid-column: 1 / -1; }
+  .visor .visor-img { max-width: 100%; max-height: calc(100dvh - 120px); }
+  .visor .visor-escena { padding: 0 24px 24px; }
+  .visor .visor-info {
+    grid-template-columns: 1fr;
+    align-content: space-between;
+    align-items: start;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 32px 32px 32px;
+    border-top: 0;
+    border-left: 1px solid rgba(245, 241, 230, .14);
+  }
+  .visor .visor-titulo { font-size: 40px; line-height: 1; }
+  .visor .visor-artista { margin-top: 24px; font-size: 18px; line-height: 1.65; }
+  .visor .visor-artista.pendiente { display: block; font-style: italic; color: var(--muted); }
+  .visor .visor-accion { justify-items: start; text-align: left; }
+}
