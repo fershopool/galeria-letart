@@ -134,7 +134,8 @@
   function refrescarDiferido() {
     if (!tieneGSAP || !tlHorizontal) return;
     clearTimeout(refrescoTimer);
-    refrescoTimer = setTimeout(() => ScrollTrigger.refresh(), 150);
+    // Nunca a media caminata: recalcular mientras se desplaza da un salto
+    refrescoTimer = setTimeout(() => ScrollTrigger.isScrolling() ? refrescarDiferido() : ScrollTrigger.refresh(), 150);
   }
 
   /* El escarabajo corre por la pared entre puntos al azar de lo que se ve de su sala:
@@ -180,15 +181,14 @@
       esconder = !esconder;
       const dx = destino.x - (a.left + a.width / 2);
       const dy = destino.y - (a.top + a.height / 2);
-      const desde = { left: bicho.offsetLeft + 'px', top: bicho.offsetTop + 'px' };
-      const hasta = { left: bicho.offsetLeft + dx + 'px', top: bicho.offsetTop + dy + 'px' };
       // La cabeza apunta hacia donde corre, girando por el camino corto
       const rumbo = Math.atan2(dy, dx) * 180 / Math.PI + 130;
       giro += ((rumbo - giro) % 360 + 540) % 360 - 180;
       cuerpo.style.rotate = giro + 'deg';
       const ms = Math.max(250, Math.hypot(dx, dy) / azar(ESCARABAJO.velMin, ESCARABAJO.velMax) * 1000);
-      Object.assign(bicho.style, hasta, { bottom: 'auto' });
-      anim = bicho.animate([desde, hasta], { duration: ms, easing: 'cubic-bezier(.45, .05, .35, 1)' });
+      // Se coloca ya en el destino y se anima desde donde estaba
+      Object.assign(bicho.style, { left: bicho.offsetLeft + dx + 'px', top: bicho.offsetTop + dy + 'px', bottom: 'auto' });
+      anim = bicho.animate([{ translate: `${-dx}px ${-dy}px` }, { translate: '0px 0px' }], { duration: ms, easing: 'cubic-bezier(.45, .05, .35, 1)' });
       anim.onfinish = () => setTimeout(paso, azar(120, ESCARABAJO.pausaMax));
     };
     setTimeout(paso, azar(300, 1500));
@@ -308,7 +308,13 @@
     const capa = $('.capa-fondo');
 
     // El scrub de ScrollTrigger va con retraso: se actualiza estados por frame mientras dure
-    tickerHorizontal = actualizarEstados;
+    let ultimaX = null;
+    tickerHorizontal = () => {
+      const x = gsap.getProperty(pista, 'x');
+      if (x !== ultimaX) { ultimaX = x; actualizarEstados(); }
+    };
+    // Las imágenes se cargan antes de llegar a ellas: así no cambian de ancho a medio camino
+    $$('.obra-btn img', pista).forEach(img => { img.loading = 'eager'; });
     gsap.ticker.add(tickerHorizontal);
 
     const tl = gsap.timeline({
@@ -320,15 +326,18 @@
         scrub: 1,
         anticipatePin: 1,
         invalidateOnRefresh: true,
-        onRefresh: programarActualizacion,
+        onRefresh: () => {
+          // La capa del fondo es más ancha justo lo que se va a desplazar
+          if (capa) capa.style.right = -distanciaHorizontal() * 0.35 + 'px';
+          programarActualizacion();
+        },
       },
     });
 
     // Scroll vertical -> desplazamiento horizontal de las salas
     tl.to(pista, { x: () => -distanciaHorizontal(), ease: 'none' }, 0);
     // Fondo con el escarabajo repetido: se desplaza más lento que las salas (parallax).
-    // Se mueve la posición del fondo, así la textura se repite sin salirse de la pantalla.
-    if (capa) tl.to(capa, { backgroundPositionX: () => (-distanciaHorizontal() * 0.35) + 'px', ease: 'none' }, 0);
+    if (capa) tl.to(capa, { x: () => -distanciaHorizontal() * 0.35, ease: 'none' }, 0);
     // Cuadros a distinta velocidad según su profundidad
     elObras.forEach(el => {
       const k = parseFloat(el.dataset.depth) || 0;
@@ -365,7 +374,8 @@
     html.classList.remove('modo-horizontal', 'modo-vertical', 'modo-carrusel');
     html.classList.toggle('modo-carrusel', movil());
     if (tieneGSAP) {
-      gsap.set([$('#pista'), $('.capa-fondo'), ...elObras].filter(Boolean), { clearProps: 'transform,backgroundPosition' });
+      gsap.set([$('#pista'), $('.capa-fondo'), ...elObras].filter(Boolean), { clearProps: 'transform' });
+      $('.capa-fondo').style.right = '';
     }
 
     if (tieneGSAP && horizontalMQ.matches && !movil()) {
@@ -390,67 +400,69 @@
     });
   }
 
+  function marcarIndice(destino) {
+    $$('.indice-item').forEach(b => {
+      const activo = b.dataset.destino === destino;
+      if (activo === b.hasAttribute('aria-current')) return;
+      if (activo) b.setAttribute('aria-current', 'true');
+      else b.removeAttribute('aria-current');
+    });
+  }
+
   function actualizarEstados() {
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     const carrusel = html.classList.contains('modo-carrusel');
-    const esH = carrusel || html.classList.contains('modo-horizontal');
+    const horizontal = html.classList.contains('modo-horizontal');
+    const esH = carrusel || horizontal;
+    const pistaEl = $('#pista');
+
+    // Primero todas las lecturas: intercalarlas con escrituras obliga a recalcular en cada obra
+    const rects = elObras.map(el => el && el.firstElementChild.getBoundingClientRect());
+    const rc = $('#contacto').getBoundingClientRect();
+    const enPortada = $('#entrada').getBoundingClientRect().bottom > vh * 0.5;
+    // Carrusel: la sala es la que ocupa el centro de la pantalla (también en su rótulo)
+    const salaCentro = carrusel && $$('.sala', pistaEl).find(s => { const r = s.getBoundingClientRect(); return r.left <= vw / 2 && r.right > vw / 2; });
+    // Progreso: en el carrusel, el avance de la pista; en el resto, el scroll de la página
+    const recorrido = carrusel ? pistaEl.scrollWidth - pistaEl.clientWidth : document.documentElement.scrollHeight - vh;
+    const avance = carrusel ? pistaEl.scrollLeft : window.scrollY;
+
     let mejor = -1;
     let mejorC = Infinity;
-
-    elObras.forEach((el, i) => {
-      if (!el) return;
-      const marco = el.querySelector('.obra-marco');
-      const r = marco.getBoundingClientRect();
+    rects.forEach((r, i) => {
+      if (!r) return;
       // c: 0 en el centro de la pantalla, 1 en los bordes (solo eje horizontal en modo horizontal)
       const d = esH
         ? Math.abs(r.left + r.width / 2 - vw / 2) / (vw / 2)
         : Math.abs(r.top + r.height / 2 - vh / 2) / (vh / 2);
-      if (esH) marco.style.setProperty('--c', Math.min(1, d).toFixed(3));
+      if (horizontal) {
+        const marco = elObras[i].firstElementChild;
+        const c = Math.min(1, d).toFixed(2);
+        if (marco.dataset.c !== c) { marco.dataset.c = c; marco.style.setProperty('--c', c); }
+      }
       // Sin recortar: en un rótulo de sala gana la obra más cercana, no la primera
       if (r.width > 0 && d < mejorC) { mejorC = d; mejor = i; }
     });
 
-    if (mejor >= 0) {
-      $('#contador').textContent = `${pad(mejor + 1)} / ${pad(TOTAL)}`;
-      const salaId = elObras[mejor].closest('.sala').dataset.sala;
-      $$('.indice-item').forEach(b => {
-        if (b.dataset.destino === 'sala-' + salaId) b.setAttribute('aria-current', 'true');
-        else b.removeAttribute('aria-current');
-      });
-    }
-
     // La linterna se apaga al llegar a la sala de contacto (crema)
-    const rc = $('#contacto').getBoundingClientRect();
-    html.classList.toggle('en-contacto', esH ? rc.left < vw * 0.5 : rc.top < vh * 0.5);
-    html.classList.toggle('en-portada', $('#entrada').getBoundingClientRect().bottom > vh * 0.5);
+    const enContacto = esH ? rc.left < vw * 0.5 : rc.top < vh * 0.5;
+    html.classList.toggle('en-contacto', enContacto);
+    html.classList.toggle('en-portada', enPortada);
 
     // Cabecera e índice cambian de color según la sala del cuadro centrado (no en contacto)
     centrado = mejor;
-    const enContacto = html.classList.contains('en-contacto');
-    let salaActual;
-    if (carrusel) {
-      // Carrusel: la sala es la que ocupa el centro de la pantalla (también en su rótulo)
-      const pista = $('#pista');
-      const sala = $$('.sala', pista).find(s => { const r = s.getBoundingClientRect(); return r.left <= vw / 2 && r.right > vw / 2; });
-      salaActual = sala && !enContacto ? sala.dataset.sala : undefined;
-      $$('.indice-item').forEach(b => {
-        const activo = b.dataset.destino === 'sala-' + salaActual || (enContacto && b.dataset.destino === 'contacto');
-        if (activo) b.setAttribute('aria-current', 'true');
-        else b.removeAttribute('aria-current');
-      });
-    } else {
-      salaActual = mejor >= 0 && !enContacto ? elObras[mejor].closest('.sala').dataset.sala : undefined;
+    const salaMejor = mejor >= 0 ? elObras[mejor].closest('.sala').dataset.sala : undefined;
+    const salaActual = enContacto ? undefined : carrusel ? salaCentro && salaCentro.dataset.sala : salaMejor;
+    if (mejor >= 0) {
+      const texto = `${pad(mejor + 1)} / ${pad(TOTAL)}`;
+      if ($('#contador').textContent !== texto) $('#contador').textContent = texto;
     }
+    marcarIndice(carrusel && enContacto ? 'contacto' : 'sala-' + (carrusel ? salaActual : salaMejor));
     const info = salaActual && SALAS.find(x => x.id === salaActual);
     const tema = info ? info.tema || info.id : '';
     if (tema) { if (html.dataset.salaActiva !== tema) html.dataset.salaActiva = tema; }
     else if ('salaActiva' in html.dataset) delete html.dataset.salaActiva;
 
-    // Progreso: en el carrusel, el avance de la pista; en el resto, el scroll de la página
-    const pistaEl = $('#pista');
-    const recorrido = carrusel ? pistaEl.scrollWidth - pistaEl.clientWidth : document.documentElement.scrollHeight - vh;
-    const avance = carrusel ? pistaEl.scrollLeft : window.scrollY;
     const p = recorrido > 0 ? Math.min(1, Math.max(0, avance / recorrido)) : 0;
     $('#progreso-barra').style.transform = `scaleX(${p})`;
   }
@@ -493,8 +505,7 @@
     const mover = e => {
       if (movil()) return;
       if (e.pointerType === 'touch' && !tocando) return;
-      l.style.setProperty('--x', e.clientX + 'px');
-      l.style.setProperty('--y', e.clientY + 'px');
+      l.style.transform = `translate3d(${e.clientX - window.innerWidth / 2}px, ${e.clientY - window.innerHeight / 2}px, 0)`;
       l.classList.add('activa');
     };
     window.addEventListener('pointermove', mover, { passive: true });
@@ -522,7 +533,7 @@
     const c = $('#cursor');
     html.classList.add('cursor-custom');
 
-    let x = 0, y = 0, cx = 0, cy = 0, visible = false;
+    let x = 0, y = 0, cx = 0, cy = 0, visible = false, andando = false;
     const suavizado = reduceMQ.matches ? 1 : 0.22;
 
     window.addEventListener('pointermove', e => {
@@ -536,6 +547,7 @@
         c.classList.add('visible');
       }
       c.classList.toggle('es-ver', !!e.target.closest('.obra-btn'));
+      if (!andando) { andando = true; requestAnimationFrame(frame); }
     }, { passive: true });
 
     window.addEventListener('pointerout', e => {
@@ -545,13 +557,13 @@
       }
     });
 
-    const frame = () => {
+    function frame() {
       cx += (x - cx) * suavizado;
       cy += (y - cy) * suavizado;
       c.style.transform = `translate3d(${cx.toFixed(1)}px, ${cy.toFixed(1)}px, 0)`;
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
+      andando = Math.abs(x - cx) + Math.abs(y - cy) > 0.1;
+      if (andando) requestAnimationFrame(frame);
+    }
   }
 
   /* ---------------------------------------------------------------
@@ -942,7 +954,8 @@
   function mostrarGuia() {
     const aviso = $('#deslizar-aviso');
     const pista = $('#pista');
-    if (!aviso || !movil()) return;
+    // Solo en teléfonos: una ventana angosta de computadora no se desliza con el dedo
+    if (!aviso || !movil() || finoMQ.matches) return;
     aviso.hidden = false;
     const ocultar = () => {
       if (pista.scrollLeft < 40) return;
