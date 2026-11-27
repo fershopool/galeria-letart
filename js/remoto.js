@@ -14,7 +14,7 @@
     };
     const [categorias, obras] = await Promise.all([
       leer('letart_categorias?select=*&order=orden,nombre'),
-      leer('letart_obras?select=*,procesos:letart_procesos(archivo,orden,creado)&order=orden,creada'),
+      leer('letart_obras?select=*,procesos:letart_procesos(*)&order=orden,creada'),
     ]);
     // Las obras van agrupadas por sala, en el orden del recorrido (de ahí sale la numeración)
     const lista = categorias.flatMap(c => obras.filter(o => o.categoria_id === c.id).map(o => ({
@@ -27,7 +27,7 @@
       texto: o.texto,
       alt: o.alt || o.titulo,
       img: o.imagen,
-      proceso: o.procesos.sort((a, b) => a.orden - b.orden || a.creado.localeCompare(b.creado)).map(p => p.archivo),
+      proceso: o.procesos.sort((a, b) => a.orden - b.orden || a.creado.localeCompare(b.creado)).map(p => ({ src: p.archivo, texto: p.texto || '' })),
     })));
     // ponytail: una base sin ninguna obra se trata como fallo y muestra las de data.js
     if (!lista.length) throw new Error('Supabase no tiene obras');

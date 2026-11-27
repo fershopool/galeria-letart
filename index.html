@@ -67,7 +67,16 @@
     <div class="visor-escena" id="visor-escena">
       <div class="visor-zoom" id="visor-zoom">
         <img class="visor-img" id="visor-img" alt="">
-        <video class="visor-video" id="visor-video" controls playsinline preload="metadata" hidden></video>
+        <video class="visor-video" id="visor-video" playsinline preload="metadata" hidden></video>
+      </div>
+      <button class="visor-flecha anterior" id="paso-anterior" type="button" aria-label="Paso anterior" hidden>‹</button>
+      <button class="visor-flecha siguiente" id="paso-siguiente" type="button" aria-label="Paso siguiente" hidden>›</button>
+      <div class="reproductor" id="reproductor" role="group" aria-label="Controles del video" hidden>
+        <button type="button" id="video-play" aria-label="Reproducir">▶</button>
+        <input type="range" id="video-barra" min="0" max="1000" value="0" aria-label="Avance del video">
+        <span class="reproductor-tiempo" id="video-tiempo">0:00 / 0:00</span>
+        <button type="button" id="video-sonido" aria-pressed="false">Silenciar</button>
+        <button type="button" id="video-pantalla">Ampliar</button>
       </div>
     </div>
     <div class="visor-info">
@@ -76,10 +85,16 @@
         <p class="visor-ficha" id="visor-ficha"></p>
         <p class="visor-nota" id="visor-nota"></p>
         <p class="visor-artista" id="visor-artista" hidden></p>
-        <div class="visor-proceso" id="visor-proceso" hidden>
-          <h3 class="visor-proceso-titulo">Proceso</h3>
-          <div class="visor-miniaturas" id="visor-miniaturas"></div>
+        <button class="btn visor-proceso" id="visor-proceso" type="button" hidden></button>
+      </div>
+      <div class="visor-pasos" id="visor-pasos" hidden>
+        <button class="visor-volver" id="paso-volver" type="button">← Volver a la obra</button>
+        <p class="pasos-obra" id="paso-obra"></p>
+        <div aria-live="polite">
+          <p class="pasos-numero" id="paso-numero"></p>
+          <p class="pasos-texto" id="paso-texto"></p>
         </div>
+        <div class="visor-miniaturas" id="visor-miniaturas"></div>
       </div>
       <div class="visor-accion">
         <p class="visor-consulta">Consulta disponibilidad y precio</p>

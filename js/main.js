@@ -514,49 +514,129 @@
   const vVideo = $('#visor-video');
   const vProceso = $('#visor-proceso');
   const vMinis = $('#visor-miniaturas');
+  const vPasos = $('#visor-pasos');
+  const vReproductor = $('#reproductor');
+  const vPlay = $('#video-play');
+  const vBarra = $('#video-barra');
+  const vTiempo = $('#video-tiempo');
+  const vSonido = $('#video-sonido');
+  const vAnterior = $('#paso-anterior');
+  const vSiguiente = $('#paso-siguiente');
   const ES_VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+  let obraVista = null;
+  let pasos = [];       // fotos y videos del proceso; el último es la obra terminada
+  let paso = -1;        // -1: ficha de la obra (fuera del modo proceso)
 
   // Muestra en la escena la obra terminada, una foto del proceso o un video
   function verMedio(src, alt) {
     const video = ES_VIDEO.test(src);
     vVideo.pause();
     vVideo.hidden = !video;
+    vReproductor.hidden = !video;
     vImg.hidden = video;
-    if (video) vVideo.src = src;
-    else {
+    vEscena.classList.toggle('con-video', video);
+    if (video) {
+      vVideo.src = src;
+      vVideo.setAttribute('aria-label', alt);
+      pintarReproductor();
+    } else {
       vVideo.removeAttribute('src');
       vImg.src = src;
       vImg.alt = alt;
     }
-    $$('.visor-mini', vMinis).forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === src)));
     reiniciarZoom();
   }
 
-  // Miniaturas del proceso: la primera es siempre la obra terminada
+  const reloj = t => (isFinite(t) ? `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}` : '0:00');
+
+  function pintarReproductor() {
+    const total = vVideo.duration;
+    const t = vVideo.currentTime || 0;
+    const parte = total ? t / total : 0;
+    vBarra.value = Math.round(parte * 1000);
+    vBarra.style.setProperty('--avance', `${parte * 100}%`);
+    vBarra.setAttribute('aria-valuetext', `${reloj(t)} de ${reloj(total)}`);
+    vTiempo.textContent = `${reloj(t)} / ${reloj(total)}`;
+    vPlay.textContent = vVideo.paused ? '▶' : '❚❚';
+    vPlay.setAttribute('aria-label', vVideo.paused ? 'Reproducir' : 'Pausar');
+    vSonido.textContent = vVideo.muted ? 'Activar sonido' : 'Silenciar';
+    vSonido.setAttribute('aria-pressed', String(vVideo.muted));
+  }
+
+  const alternarVideo = () => { if (vVideo.paused) vVideo.play().catch(() => {}); else vVideo.pause(); };
+
+  function pantallaCompleta() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (vEscena.requestFullscreen) vEscena.requestFullscreen().catch(() => {});
+    else if (vVideo.webkitEnterFullscreen) vVideo.webkitEnterFullscreen();   // iPhone
+  }
+
+  const nombrePaso = n => (pasos[n].final ? 'Obra terminada' : `${ES_VIDEO.test(pasos[n].src) ? 'Video' : 'Foto'} del proceso ${n + 1}`);
+
+  // En la ficha solo se ofrece el botón; el recorrido se arma aquí
   function pintarProceso(obra) {
-    const medios = (obra.proceso || []).filter(Boolean);
+    const medios = (obra.proceso || []).map(m => (typeof m === 'string' ? { src: m, texto: '' } : m)).filter(m => m && m.src);
+    obraVista = obra;
+    pasos = medios.length ? [...medios, { src: obra.img, texto: '', final: true }] : [];
     vProceso.hidden = !medios.length;
+    vProceso.textContent = `Ver el proceso · ${medios.length} ${medios.length === 1 ? 'paso' : 'pasos'}`;
+    $('#paso-obra').textContent = obra.titulo;
     vMinis.textContent = '';
-    if (!medios.length) return;
-    [obra.img, ...medios].forEach((src, n) => {
-      const nombre = n === 0 ? 'Obra terminada' : `${ES_VIDEO.test(src) ? 'Video' : 'Foto'} del proceso ${n}`;
+    pasos.forEach((p, n) => {
       const b = document.createElement('button');
       b.type = 'button';
       b.className = 'visor-mini';
-      b.dataset.src = src;
-      b.setAttribute('aria-label', nombre);
-      b.setAttribute('aria-pressed', String(n === 0));
-      if (ES_VIDEO.test(src)) b.innerHTML = '<span aria-hidden="true">▶</span>';
-      else {
-        const img = document.createElement('img');
-        img.src = src;
-        img.alt = '';
-        img.loading = 'lazy';
-        b.appendChild(img);
-      }
-      b.addEventListener('click', () => verMedio(src, n === 0 ? obra.alt : `${nombre} de «${obra.titulo}»`));
+      b.setAttribute('aria-label', nombrePaso(n));
+      const video = ES_VIDEO.test(p.src);
+      const m = document.createElement(video ? 'video' : 'img');
+      if (video) { m.muted = true; m.preload = 'metadata'; m.playsInline = true; m.tabIndex = -1; b.classList.add('es-video'); }
+      else { m.alt = ''; m.loading = 'lazy'; }
+      m.src = video ? `${p.src}#t=0.1` : p.src;
+      b.appendChild(m);
+      b.addEventListener('click', () => irPaso(n));
       vMinis.appendChild(b);
     });
+  }
+
+  function irPaso(n) {
+    paso = Math.max(0, Math.min(pasos.length - 1, n));
+    const p = pasos[paso];
+    verMedio(p.src, p.final ? obraVista.alt : `${nombrePaso(paso)} de «${obraVista.titulo}»${p.texto ? `: ${p.texto}` : ''}`);
+    $('#paso-numero').textContent = p.final ? 'Obra terminada' : `Paso ${paso + 1} de ${pasos.length - 1}`;
+    $('#paso-texto').textContent = p.texto;
+    vAnterior.disabled = paso === 0;
+    vSiguiente.disabled = paso === pasos.length - 1;
+    $$('.visor-mini', vMinis).forEach((b, i) => b.setAttribute('aria-pressed', String(i === paso)));
+    const actual = vMinis.children[paso];
+    vMinis.scrollTo({ left: actual.offsetLeft - (vMinis.clientWidth - actual.offsetWidth) / 2, behavior: reduceMQ.matches ? 'auto' : 'smooth' });
+    if (!vVideo.hidden) alternarVideo();
+    else if (vImg.animate && !reduceMQ.matches) vImg.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: 'ease-out' });
+  }
+
+  function modoProceso(activo) {
+    visor.classList.toggle('modo-proceso', activo);
+    vPasos.hidden = !activo;
+    vAnterior.hidden = vSiguiente.hidden = !activo;
+    if (!activo) paso = -1;
+  }
+
+  function salirProceso() {
+    modoProceso(false);
+    verMedio(obraVista.img, obraVista.alt);
+    vProceso.focus({ preventScroll: true });
+  }
+
+  function iniciarProceso() {
+    vProceso.addEventListener('click', () => { modoProceso(true); irPaso(0); $('#paso-volver').focus({ preventScroll: true }); });
+    $('#paso-volver').addEventListener('click', salirProceso);
+    vAnterior.addEventListener('click', () => irPaso(paso - 1));
+    vSiguiente.addEventListener('click', () => irPaso(paso + 1));
+    vPlay.addEventListener('click', alternarVideo);
+    vVideo.addEventListener('click', alternarVideo);
+    vSonido.addEventListener('click', () => { vVideo.muted = !vVideo.muted; });
+    $('#video-pantalla').addEventListener('click', pantallaCompleta);
+    vBarra.addEventListener('input', () => { if (vVideo.duration) vVideo.currentTime = vBarra.value / 1000 * vVideo.duration; });
+    ['timeupdate', 'durationchange', 'play', 'pause', 'volumechange'].forEach(t => vVideo.addEventListener(t, pintarReproductor));
   }
   const vCerrar = $('#visor-cerrar');
 
@@ -577,6 +657,7 @@
   function pintarObra(i) {
     const obra = OBRAS[i];
     const numero = String(typeof WHATSAPP === 'string' ? WHATSAPP : '').replace(/\D/g, '');
+    modoProceso(false);
     pintarProceso(obra);
     verMedio(obra.img, obra.alt);
     vTitulo.textContent = obra.titulo;
@@ -636,6 +717,7 @@
     if (visor.hidden) return;
     visor.hidden = true;
     vVideo.pause();
+    if (document.fullscreenElement) document.exitFullscreen();
     html.classList.remove('visor-abierto');
     if (desdeHistorial !== true && history.state && history.state.visor) history.back();
     if (disparador && document.contains(disparador)) disparador.focus({ preventScroll: true });
@@ -675,24 +757,27 @@
   };
 
   function iniciarVisor() {
+    iniciarProceso();
     vCerrar.addEventListener('click', () => cerrarVisor());
     window.addEventListener('popstate', () => { if (!visor.hidden) cerrarVisor(true); });
 
     // Rueda: zoom
     vEscena.addEventListener('wheel', e => {
       e.preventDefault();
+      if (!vVideo.hidden) return;
       fijarZoom(zoom.s * (e.deltaY < 0 ? 1.15 : 1 / 1.15));
     }, { passive: false });
 
     // Doble clic: alterna zoom
-    vEscena.addEventListener('dblclick', () => {
+    vEscena.addEventListener('dblclick', e => {
+      if (!vVideo.hidden || e.target.closest('button')) return;
       if (zoom.s > 1) reiniciarZoom();
       else fijarZoom(2.5);
     });
 
     // Puntero: pellizco (dos dedos), arrastre (ampliada) y deslizar abajo o tocar el fondo para cerrar
     vEscena.addEventListener('pointerdown', e => {
-      if (e.target === vVideo) return;          // los controles del video reciben el puntero
+      if (e.target.closest('video, button, .reproductor')) return;   // los controles reciben el puntero
       vEscena.setPointerCapture(e.pointerId);
       punteros.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY });
       if (punteros.size === 2) {
@@ -725,9 +810,10 @@
       if (punteros.size === 0 && zoom.s <= 1.01 && arrastre && e.type !== 'pointercancel') {
         const dx = e.clientX - p.x0;
         const dy = e.clientY - p.y0;
-        const r = vImg.getBoundingClientRect();
+        const r = (vVideo.hidden ? vImg : vVideo).getBoundingClientRect();
         const enImagen = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
-        if (dy > 100 && dy > Math.abs(dx) * 1.5) cerrarVisor();          // deslizar abajo cierra
+        if (paso >= 0 && Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) irPaso(paso + (dx < 0 ? 1 : -1));
+        else if (dy > 100 && dy > Math.abs(dx) * 1.5) cerrarVisor();          // deslizar abajo cierra
         else if (Math.hypot(dx, dy) < 10 && !enImagen) cerrarVisor();         // toque o clic en el fondo
       }
       if (punteros.size === 0) {
@@ -745,7 +831,9 @@
     // Teclado: Esc cierra, +/- hacen zoom; el foco queda dentro del visor
     document.addEventListener('keydown', e => {
       if (visor.hidden) return;
-      if (e.key === 'Escape') { e.preventDefault(); cerrarVisor(); }
+      if (e.key === 'Escape') { e.preventDefault(); if (paso >= 0) salirProceso(); else cerrarVisor(); }
+      else if (paso >= 0 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && e.target !== vBarra) { e.preventDefault(); irPaso(paso + (e.key === 'ArrowLeft' ? -1 : 1)); }
+      else if (e.key === ' ' && !vVideo.hidden && !e.target.closest('button, a, input')) { e.preventDefault(); alternarVideo(); }
       else if (e.key === '+' || e.key === '=') fijarZoom(zoom.s * 1.25);
       else if (e.key === '-') fijarZoom(zoom.s / 1.25);
       else if (e.key === '0') reiniciarZoom();
@@ -754,7 +842,7 @@
   }
 
   function trampaFoco(e) {
-    const f = $$('button, a[href]', visor);
+    const f = $$('button:not(:disabled), a[href], input', visor).filter(x => x.getClientRects().length);
     if (!f.length) return;
     const primero = f[0];
     const ultimo = f[f.length - 1];

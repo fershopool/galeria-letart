@@ -1326,23 +1326,55 @@ html { --cab-h: 104px; }
 }
 
 /* ---------- Visor: fotos y videos del proceso ---------- */
-.visor-img[hidden], .visor-video[hidden], .visor-proceso[hidden] { display: none !important; }
-.visor-video { max-width: 100%; max-height: calc(100dvh - 260px); }
-@media (min-width: 800px) and (min-height: 501px) { .visor .visor-video { max-height: calc(100dvh - 120px); } }
-.visor-proceso { margin-top: 20px; }
-.visor-proceso-titulo { margin-bottom: 8px; font-size: 13px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
-.visor-miniaturas { display: flex; flex-wrap: wrap; gap: 8px; }
-.visor-mini {
-  width: 64px;
-  height: 64px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  background: #000;
-  color: var(--texto-claro);
-  border: 2px solid transparent;
-  cursor: pointer;
-}
-.visor-mini img { width: 100%; height: 100%; object-fit: cover; }
+.visor-img[hidden], .visor-video[hidden], .visor-proceso[hidden], .visor-pasos[hidden], .visor-flecha[hidden], .reproductor[hidden] { display: none !important; }
+.visor-video { max-width: 100%; max-height: calc(100dvh - 330px); cursor: pointer; background: #000; }
+@media (min-width: 800px) and (min-height: 501px) { .visor .visor-video { max-height: calc(100dvh - 190px); } }
+.visor-escena.con-video { flex-direction: column; gap: 12px; cursor: default; }
+.visor-proceso { margin-top: 22px; }
+
+/* Controles del video */
+.reproductor { display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 32px)); font-size: 13px; cursor: default; }
+.reproductor button { min-width: 44px; min-height: 44px; padding: 0 8px; background: none; border: 0; color: inherit; font: inherit; letter-spacing: .08em; cursor: pointer; }
+.reproductor button:hover { color: var(--naranja); }
+.reproductor-tiempo { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.reproductor input { flex: 1; min-width: 60px; height: 24px; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.reproductor input::-webkit-slider-runnable-track { height: 3px; background: linear-gradient(90deg, var(--naranja) var(--avance, 0%), rgba(245, 241, 230, .25) var(--avance, 0%)); }
+.reproductor input::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--texto-claro); }
+.reproductor input::-moz-range-track { height: 3px; background: rgba(245, 241, 230, .25); }
+.reproductor input::-moz-range-progress { height: 3px; background: var(--naranja); }
+.reproductor input::-moz-range-thumb { width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--texto-claro); }
+.visor-escena:fullscreen { background: #000; }
+.visor .visor-escena:fullscreen .visor-video { width: 100%; max-height: calc(100vh - 90px); background: #000; }
+.visor-escena:fullscreen .visor-flecha { display: none; }
+
+/* Recorrido del proceso */
+.visor-flecha { position: absolute; top: 50%; translate: 0 -50%; z-index: 2; width: 48px; height: 48px; border: 1px solid rgba(245, 241, 230, .35); border-radius: 50%; background: rgba(0, 0, 0, .55); color: var(--texto-claro); font-size: 28px; line-height: 1; cursor: pointer; }
+.visor-flecha.anterior { left: 14px; }
+.visor-flecha.siguiente { right: 14px; }
+.visor-flecha:hover:not(:disabled) { background: var(--texto-claro); color: var(--tinta); }
+.visor-flecha:disabled { opacity: .2; cursor: default; }
+.visor.modo-proceso .visor-texto, .visor.modo-proceso .visor-accion { display: none; }
+.visor-pasos { display: flex; flex-direction: column; gap: 10px; min-width: 0; grid-column: 1 / -1; }
+.visor-volver { align-self: flex-start; min-height: 40px; padding: 0; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.visor-volver:hover { color: var(--texto-claro); }
+.pasos-obra { font-weight: 800; font-stretch: 62%; font-size: 22px; line-height: 1.1; text-transform: uppercase; }
+.pasos-numero { padding-top: 10px; border-top: 1px solid rgba(245, 241, 230, .14); font-size: 12px; letter-spacing: .18em; text-transform: uppercase; color: var(--naranja); }
+.pasos-texto { max-width: 60ch; margin-top: 8px; font-size: 16px; line-height: 1.6; white-space: pre-line; overflow-wrap: anywhere; }
+.visor-miniaturas { display: flex; flex: none; gap: 8px; overflow-x: auto; padding: 4px 0; position: relative; }
+.visor-mini { position: relative; flex: none; width: 72px; height: 56px; padding: 0; overflow: hidden; background: #000; color: var(--texto-claro); border: 2px solid transparent; cursor: pointer; opacity: .55; }
+.visor-mini :is(img, video) { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.visor-mini.es-video::after { content: "\25B6"; position: absolute; inset: 0; display: grid; place-items: center; font-size: 16px; text-shadow: 0 0 6px #000; }
+.visor-mini:hover, .visor-mini[aria-pressed="true"] { opacity: 1; }
 .visor-mini[aria-pressed="true"] { border-color: var(--naranja); }
+@media (min-width: 800px) and (min-height: 501px) {
+  .visor .visor-pasos { align-self: stretch; }
+  .visor .visor-miniaturas { margin-top: auto; flex-wrap: wrap; overflow: visible; }
+  .visor .pasos-texto { font-size: 18px; }
+}
+@media (max-width: 799px) {
+  .visor-flecha { width: 40px; height: 40px; font-size: 22px; }
+  .visor-flecha.anterior { left: 6px; }
+  .visor-flecha.siguiente { right: 6px; }
+  .visor-video { max-height: calc(100% - 56px); min-height: 0; }
+  .reproductor { gap: 6px; width: calc(100% - 16px); font-size: 12px; }
+}
