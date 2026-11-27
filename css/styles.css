@@ -1327,24 +1327,37 @@ html { --cab-h: 104px; }
 
 /* ---------- Visor: fotos y videos del proceso ---------- */
 .visor-img[hidden], .visor-video[hidden], .visor-proceso[hidden], .visor-pasos[hidden], .visor-flecha[hidden], .reproductor[hidden] { display: none !important; }
-.visor-video { max-width: 100%; max-height: calc(100dvh - 330px); cursor: pointer; background: #000; }
-@media (min-width: 800px) and (min-height: 501px) { .visor .visor-video { max-height: calc(100dvh - 190px); } }
+.visor-video { max-width: 100%; max-height: calc(100dvh - 360px); cursor: pointer; background: #000; border-radius: 10px; }
+@media (min-width: 800px) and (min-height: 501px) { .visor .visor-video { max-height: calc(100dvh - 220px); } }
 .visor-escena.con-video { flex-direction: column; gap: 12px; cursor: default; }
 .visor-proceso { margin-top: 22px; }
 
 /* Controles del video */
-.reproductor { display: flex; align-items: center; gap: 14px; width: min(760px, calc(100% - 32px)); font-size: 13px; cursor: default; }
-.reproductor button { min-width: 44px; min-height: 44px; padding: 0 8px; background: none; border: 0; color: inherit; font: inherit; letter-spacing: .08em; cursor: pointer; }
-.reproductor button:hover { color: var(--naranja); }
-.reproductor-tiempo { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.reproductor input { flex: 1; min-width: 60px; height: 24px; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
-.reproductor input::-webkit-slider-runnable-track { height: 3px; background: linear-gradient(90deg, var(--naranja) var(--avance, 0%), rgba(245, 241, 230, .25) var(--avance, 0%)); }
-.reproductor input::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--texto-claro); }
-.reproductor input::-moz-range-track { height: 3px; background: rgba(245, 241, 230, .25); }
-.reproductor input::-moz-range-progress { height: 3px; background: var(--naranja); }
-.reproductor input::-moz-range-thumb { width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--texto-claro); }
+.visor-escena.con-video .visor-zoom { position: relative; }
+.video-grande { position: absolute; top: 50%; left: 50%; translate: -50% -50%; display: grid; place-items: center; width: 76px; height: 76px; border: 1px solid rgba(245, 241, 230, .5); border-radius: 50%; background: rgba(0, 0, 0, .55); color: var(--texto-claro); backdrop-filter: blur(6px); cursor: pointer; transition: scale .2s ease, background .2s ease; }
+.video-grande:hover { scale: 1.08; background: var(--naranja); color: var(--tinta); }
+.video-grande .ico { width: 34px; height: 34px; }
+.reproductor { display: grid; gap: 2px; width: min(640px, calc(100% - 32px)); padding: 8px 14px 6px; background: rgba(245, 241, 230, .07); border: 1px solid rgba(245, 241, 230, .13); border-radius: 16px; font-size: 13px; cursor: default; }
+.reproductor-fila { display: flex; align-items: center; gap: 6px; }
+.reproductor button { display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0; background: none; border: 0; border-radius: 50%; color: inherit; cursor: pointer; transition: background .15s ease, color .15s ease; }
+.reproductor button:hover { background: rgba(245, 241, 230, .12); color: var(--naranja); }
+.ico { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ico .relleno { fill: currentColor; stroke: none; }
+.reproductor .si-activo, .reproductor .activo .si-pausado, .reproductor .si-mudo, .reproductor .mudo .si-sonando, .reproductor .si-completa, .reproductor .completa .si-normal { display: none; }
+.reproductor .activo .si-activo, .reproductor .mudo .si-mudo, .reproductor .completa .si-completa { display: block; }
+.reproductor-tiempo { margin-right: auto; font-variant-numeric: tabular-nums; letter-spacing: .04em; white-space: nowrap; color: var(--muted); }
+.reproductor-volumen { display: flex; align-items: center; gap: 4px; }
+.reproductor-volumen input { width: 96px; margin-right: 6px; }
+.deslizador { width: 100%; height: 24px; background: transparent; appearance: none; -webkit-appearance: none; cursor: pointer; }
+.deslizador::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(90deg, var(--naranja) var(--avance, 0%), rgba(245, 241, 230, .22) var(--avance, 0%)); }
+.deslizador::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; margin-top: -4.5px; border: 0; border-radius: 50%; background: var(--texto-claro); box-shadow: 0 0 0 0 rgba(232, 160, 74, .35); transition: box-shadow .15s ease; }
+.deslizador:hover::-webkit-slider-thumb, .deslizador:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 6px rgba(232, 160, 74, .35); }
+.deslizador::-moz-range-track { height: 4px; border-radius: 2px; background: rgba(245, 241, 230, .22); }
+.deslizador::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--naranja); }
+.deslizador::-moz-range-thumb { width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--texto-claro); }
+.video-grande[hidden], .deslizador[hidden] { display: none !important; }
 .visor-escena:fullscreen { background: #000; }
-.visor .visor-escena:fullscreen .visor-video { width: 100%; max-height: calc(100vh - 90px); background: #000; }
+.visor .visor-escena:fullscreen .visor-video { width: 100%; max-height: calc(100vh - 140px); background: #000; border-radius: 0; }
 .visor-escena:fullscreen .visor-flecha { display: none; }
 
 /* Recorrido del proceso */
@@ -1375,6 +1388,7 @@ html { --cab-h: 104px; }
   .visor-flecha { width: 40px; height: 40px; font-size: 22px; }
   .visor-flecha.anterior { left: 6px; }
   .visor-flecha.siguiente { right: 6px; }
-  .visor-video { max-height: calc(100% - 56px); min-height: 0; }
-  .reproductor { gap: 6px; width: calc(100% - 16px); font-size: 12px; }
+  .visor-video { max-height: calc(100% - 104px); min-height: 0; }
+  .reproductor { width: calc(100% - 16px); padding: 4px 8px 2px; font-size: 12px; }
+  .reproductor-volumen input { width: 72px; }
 }

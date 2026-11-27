@@ -520,6 +520,8 @@
   const vBarra = $('#video-barra');
   const vTiempo = $('#video-tiempo');
   const vSonido = $('#video-sonido');
+  const vVolumen = $('#video-volumen');
+  const vGrande = $('#video-grande');
   const vAnterior = $('#paso-anterior');
   const vSiguiente = $('#paso-siguiente');
   const ES_VIDEO = /\.(mp4|webm|mov|m4v)$/i;
@@ -533,6 +535,7 @@
     vVideo.pause();
     vVideo.hidden = !video;
     vReproductor.hidden = !video;
+    if (!video) vGrande.hidden = true;
     vImg.hidden = video;
     vEscena.classList.toggle('con-video', video);
     if (video) {
@@ -557,10 +560,15 @@
     vBarra.style.setProperty('--avance', `${parte * 100}%`);
     vBarra.setAttribute('aria-valuetext', `${reloj(t)} de ${reloj(total)}`);
     vTiempo.textContent = `${reloj(t)} / ${reloj(total)}`;
-    vPlay.textContent = vVideo.paused ? '▶' : '❚❚';
+    vPlay.classList.toggle('activo', !vVideo.paused);
     vPlay.setAttribute('aria-label', vVideo.paused ? 'Reproducir' : 'Pausar');
-    vSonido.textContent = vVideo.muted ? 'Activar sonido' : 'Silenciar';
-    vSonido.setAttribute('aria-pressed', String(vVideo.muted));
+    vGrande.hidden = vVideo.hidden || !vVideo.paused;
+    const volumen = vVideo.muted ? 0 : Math.round(vVideo.volume * 100);
+    vVolumen.value = volumen;
+    vVolumen.style.setProperty('--avance', `${volumen}%`);
+    vVolumen.setAttribute('aria-valuetext', `${volumen} %`);
+    vSonido.classList.toggle('mudo', !volumen);
+    vSonido.setAttribute('aria-label', volumen ? 'Silenciar' : 'Activar sonido');
   }
 
   const alternarVideo = () => { if (vVideo.paused) vVideo.play().catch(() => {}); else vVideo.pause(); };
@@ -633,7 +641,25 @@
     vSiguiente.addEventListener('click', () => irPaso(paso + 1));
     vPlay.addEventListener('click', alternarVideo);
     vVideo.addEventListener('click', alternarVideo);
-    vSonido.addEventListener('click', () => { vVideo.muted = !vVideo.muted; });
+    vGrande.addEventListener('click', () => { alternarVideo(); vPlay.focus({ preventScroll: true }); });
+    vSonido.addEventListener('click', () => {
+      const mudo = vVideo.muted || !vVideo.volume;
+      if (mudo && !vVideo.volume) vVideo.volume = .6;
+      vVideo.muted = !mudo;
+    });
+    vVolumen.addEventListener('input', () => {
+      vVideo.volume = vVolumen.value / 100;
+      vVideo.muted = vVideo.volume === 0;
+    });
+    // iPhone no deja cambiar el volumen desde la página (se usan los botones del teléfono)
+    const prueba = document.createElement('video');
+    prueba.volume = .5;
+    vVolumen.hidden = prueba.volume !== .5;
+    document.addEventListener('fullscreenchange', () => {
+      const completa = Boolean(document.fullscreenElement);
+      $('#video-pantalla').classList.toggle('completa', completa);
+      $('#video-pantalla').setAttribute('aria-label', completa ? 'Salir de pantalla completa' : 'Pantalla completa');
+    });
     $('#video-pantalla').addEventListener('click', pantallaCompleta);
     vBarra.addEventListener('input', () => { if (vVideo.duration) vVideo.currentTime = vBarra.value / 1000 * vVideo.duration; });
     ['timeupdate', 'durationchange', 'play', 'pause', 'volumechange'].forEach(t => vVideo.addEventListener(t, pintarReproductor));
@@ -832,7 +858,7 @@
     document.addEventListener('keydown', e => {
       if (visor.hidden) return;
       if (e.key === 'Escape') { e.preventDefault(); if (paso >= 0) salirProceso(); else cerrarVisor(); }
-      else if (paso >= 0 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && e.target !== vBarra) { e.preventDefault(); irPaso(paso + (e.key === 'ArrowLeft' ? -1 : 1)); }
+      else if (paso >= 0 && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.target.closest('input')) { e.preventDefault(); irPaso(paso + (e.key === 'ArrowLeft' ? -1 : 1)); }
       else if (e.key === ' ' && !vVideo.hidden && !e.target.closest('button, a, input')) { e.preventDefault(); alternarVideo(); }
       else if (e.key === '+' || e.key === '=') fijarZoom(zoom.s * 1.25);
       else if (e.key === '-') fijarZoom(zoom.s / 1.25);

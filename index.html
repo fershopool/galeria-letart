@@ -6,7 +6,8 @@
   <title>Camila Pérez · Portafolio artístico</title>
   <meta name="description" content="Portafolio de Camila Pérez (@letart.arlet): pinturas al óleo y acrílico, mascotas, naturaleza, réplicas, arte digital y textiles. Consulta disponibilidad de obra y encargos.">
   <meta name="theme-color" content="#1C1C1B">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231C1C1B'/%3E%3Ctext x='16' y='23' font-family='Arial' font-weight='700' font-size='20' text-anchor='middle' fill='%23F8F5EA'%3EC%3C/text%3E%3C/svg%3E">
+  <link rel="icon" type="image/png" href="img/icono.png">
+  <link rel="apple-touch-icon" href="img/icono.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap">
@@ -68,15 +69,21 @@
       <div class="visor-zoom" id="visor-zoom">
         <img class="visor-img" id="visor-img" alt="">
         <video class="visor-video" id="visor-video" playsinline preload="metadata" hidden></video>
+        <button class="video-grande" id="video-grande" type="button" aria-label="Reproducir video" hidden><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path class="relleno" d="M8 5v14l11-7z"/></svg></button>
       </div>
       <button class="visor-flecha anterior" id="paso-anterior" type="button" aria-label="Paso anterior" hidden>‹</button>
       <button class="visor-flecha siguiente" id="paso-siguiente" type="button" aria-label="Paso siguiente" hidden>›</button>
       <div class="reproductor" id="reproductor" role="group" aria-label="Controles del video" hidden>
-        <button type="button" id="video-play" aria-label="Reproducir">▶</button>
-        <input type="range" id="video-barra" min="0" max="1000" value="0" aria-label="Avance del video">
-        <span class="reproductor-tiempo" id="video-tiempo">0:00 / 0:00</span>
-        <button type="button" id="video-sonido" aria-pressed="false">Silenciar</button>
-        <button type="button" id="video-pantalla">Ampliar</button>
+        <input type="range" class="deslizador video-barra" id="video-barra" min="0" max="1000" value="0" aria-label="Avance del video">
+        <div class="reproductor-fila">
+          <button type="button" id="video-play" aria-label="Reproducir"><svg class="ico si-pausado" viewBox="0 0 24 24" aria-hidden="true"><path class="relleno" d="M8 5v14l11-7z"/></svg><svg class="ico si-activo" viewBox="0 0 24 24" aria-hidden="true"><path class="relleno" d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg></button>
+          <span class="reproductor-tiempo" id="video-tiempo">0:00 / 0:00</span>
+          <div class="reproductor-volumen">
+            <button type="button" id="video-sonido" aria-label="Silenciar"><svg class="ico si-sonando" viewBox="0 0 24 24" aria-hidden="true"><path class="relleno" d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg><svg class="ico si-mudo" viewBox="0 0 24 24" aria-hidden="true"><path class="relleno" d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button>
+            <input type="range" class="deslizador" id="video-volumen" min="0" max="100" value="100" aria-label="Volumen">
+          </div>
+          <button type="button" id="video-pantalla" aria-label="Pantalla completa"><svg class="ico si-normal" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><svg class="ico si-completa" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5"/></svg></button>
+        </div>
       </div>
     </div>
     <div class="visor-info">
