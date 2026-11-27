@@ -752,7 +752,7 @@ html:not(.js) .entrada { position: relative; }
 }
 
 /* ==========================================================================
-   Salas como cuartos de museo (solo CSS). Cada .sala[data-sala] es una
+   Salas como cuartos de museo (solo CSS). Cada .sala[data-tema] es una
    habitación: pared (fondo), decoración (::before), suelo (::after), marcos,
    cédulas y cartela con sus propios colores. El .umbral antes de cada sala
    es la puerta y lleva el rótulo «Sala I», «Sala II»…
@@ -833,7 +833,7 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
 }
 
 /* ---- Sala I · MASCOTAS: cálida, terracota, madera, huellas tenues ---- */
-.sala[data-sala="mascotas"], .umbral[data-sala="mascotas"] {
+.sala[data-tema="mascotas"], .umbral[data-tema="mascotas"] {
   --sala-texto: #F5F1E6;
   --sala-muted: #F2DFC6;
   --sala-linea: rgba(245, 230, 210, .4);
@@ -842,28 +842,28 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #4A2A18;
   --sala-jamba-texto: #F3E6CF;
 }
-.sala[data-sala="mascotas"] {
+.sala[data-tema="mascotas"] {
   background:
     radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 214, 170, .16), rgba(255, 214, 170, 0) 70%),
     linear-gradient(180deg, #A4553A 0%, #8F4830 100%);
 }
-.sala[data-sala="mascotas"]::before {
+.sala[data-tema="mascotas"]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cg fill='%23FFD9B0' fill-opacity='.11'%3E%3Cellipse cx='58' cy='96' rx='16' ry='13'/%3E%3Ccircle cx='38' cy='74' r='6.5'/%3E%3Ccircle cx='56' cy='62' r='6.5'/%3E%3Ccircle cx='75' cy='66' r='6.5'/%3E%3Ccircle cx='84' cy='84' r='6.5'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 170px 170px;
 }
-.sala[data-sala="mascotas"]::after {
+.sala[data-tema="mascotas"]::after {
   background:
     repeating-linear-gradient(90deg, rgba(0, 0, 0, .12) 0 2px, transparent 2px 170px),
     linear-gradient(180deg, #9A643A, #6F4425);
   border-top: 10px solid #4A2A18;   /* zócalo */
 }
-.sala[data-sala="mascotas"] .obra-marco {
+.sala[data-tema="mascotas"] .obra-marco {
   background: repeating-linear-gradient(90deg, #6B4226 0 4px, #7F4F2C 4px 9px);
   box-shadow: inset 0 0 0 2px #4A2C17, 0 40px 60px -28px rgba(40, 15, 5, .75);
 }
 
 /* ---- Sala II · NATURALEZA: invernadero salvia, hojas, luz cenital ---- */
-.sala[data-sala="naturaleza"], .umbral[data-sala="naturaleza"] {
+.sala[data-tema="naturaleza"], .umbral[data-tema="naturaleza"] {
   --sala-texto: #F5F1E6;
   --sala-muted: #D5E6C4;
   --sala-linea: rgba(240, 248, 230, .35);
@@ -872,29 +872,29 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #24402A;
   --sala-jamba-texto: #F3F0DC;
 }
-.sala[data-sala="naturaleza"] {
+.sala[data-tema="naturaleza"] {
   background:
     radial-gradient(ellipse 60% 55% at 50% -8%, rgba(239, 228, 138, .3), rgba(239, 228, 138, 0) 70%),
     linear-gradient(180deg, #3D6638 0%, #2A4D2A 100%);
 }
-.sala[data-sala="naturaleza"]::before {
+.sala[data-tema="naturaleza"]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='%23CFE3B5' fill-opacity='.13'%3E%3Cpath d='M30 190C30 100 90 40 190 28C188 128 128 190 30 190Z'/%3E%3Cpath d='M120 200C112 150 130 118 176 104C180 150 160 186 120 200Z'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 220px 220px;
 }
-.sala[data-sala="naturaleza"]::after {
+.sala[data-tema="naturaleza"]::after {
   background:
     repeating-linear-gradient(0deg, rgba(0, 0, 0, .14) 0 1px, transparent 1px 48px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, .14) 0 1px, transparent 1px 48px),
     #203A20;
   border-top: 6px solid #5E7F4A;
 }
-.sala[data-sala="naturaleza"] .obra-marco {
+.sala[data-tema="naturaleza"] .obra-marco {
   background: #E9E2CB;
   box-shadow: inset 0 0 0 1px #B9B08C, 0 40px 60px -28px rgba(0, 20, 0, .7);
 }
 
 /* ---- Sala III · RÉPLICAS: salón clásico, burdeos, damasco, molduras, marcos dorados ---- */
-.sala[data-sala="replicas"], .umbral[data-sala="replicas"] {
+.sala[data-tema="replicas"], .umbral[data-tema="replicas"] {
   --sala-texto: #F5EBD6;
   --sala-muted: #E9D6A6;
   --sala-linea: rgba(224, 184, 90, .5);
@@ -903,28 +903,28 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #2A1216;
   --sala-jamba-texto: #E0B85A;
 }
-.sala[data-sala="replicas"] {
+.sala[data-tema="replicas"] {
   background:
     linear-gradient(90deg, rgba(0, 0, 0, .28), rgba(0, 0, 0, 0) 12%, rgba(0, 0, 0, 0) 88%, rgba(0, 0, 0, .28)),
     linear-gradient(180deg, #C9A24A 0 3px, transparent 3px 9px, #8A6A2A 9px 11px, transparent 11px) top / 100% 60px no-repeat,
     linear-gradient(180deg, transparent 0 calc(62% - 1px), #C9A24A calc(62% - 1px) calc(62% + 1px), transparent calc(62% + 1px)),
     linear-gradient(180deg, #6A1F28 0%, #4A1419 100%);
 }
-.sala[data-sala="replicas"]::before {
+.sala[data-tema="replicas"]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%23E0B85A' fill-opacity='.09'%3E%3Cpath d='M60 8C78 28 78 46 60 60C42 46 42 28 60 8ZM60 60C78 74 78 92 60 112C42 92 42 74 60 60ZM8 60C26 42 44 42 60 60C44 78 26 78 8 60ZM112 60C94 42 76 42 60 60C76 78 94 78 112 60Z'/%3E%3C/g%3E%3C/svg%3E");
   background-size: 120px 120px;
 }
-.sala[data-sala="replicas"]::after {
+.sala[data-tema="replicas"]::after {
   background: repeating-linear-gradient(45deg, #3A2418 0 22px, #4B3020 22px 44px);
   border-top: 8px solid #6B4A22;
 }
-.sala[data-sala="replicas"] .obra-marco {
+.sala[data-tema="replicas"] .obra-marco {
   background: linear-gradient(135deg, #E9C77A, #9C7A34 50%, #E9C77A);
   box-shadow: inset 0 0 0 2px #5C4118, inset 0 0 0 5px #C9A24A, 0 40px 60px -28px rgba(0, 0, 0, .85);
 }
 
 /* ---- Sala IV · ARTE DIGITAL: oscura, retícula turquesa, marcos finos luminosos ---- */
-.sala[data-sala="digital"], .umbral[data-sala="digital"] {
+.sala[data-tema="digital"], .umbral[data-tema="digital"] {
   --sala-texto: #F5F1E6;
   --sala-muted: #B5CEDD;
   --sala-linea: rgba(125, 167, 196, .45);
@@ -933,29 +933,29 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #0B1012;
   --sala-jamba-texto: #7DA7C4;
 }
-.sala[data-sala="digital"] {
+.sala[data-tema="digital"] {
   background:
     radial-gradient(ellipse 55% 60% at 50% 35%, rgba(125, 167, 196, .16), rgba(125, 167, 196, 0) 70%),
     linear-gradient(180deg, #151F24 0%, #0B1114 100%);
 }
-.sala[data-sala="digital"]::before {
+.sala[data-tema="digital"]::before {
   background-image:
     linear-gradient(rgba(125, 167, 196, .07) 1px, transparent 1px),
     linear-gradient(90deg, rgba(125, 167, 196, .07) 1px, transparent 1px);
   background-size: 56px 56px;
 }
-.sala[data-sala="digital"]::after {
+.sala[data-tema="digital"]::after {
   background: linear-gradient(180deg, rgba(125, 167, 196, .16), rgba(125, 167, 196, 0) 45%), #091013;
   border-top: 1px solid #7DA7C4;
   box-shadow: 0 -8px 24px -6px rgba(125, 167, 196, .45);
 }
-.sala[data-sala="digital"] .obra-marco {
+.sala[data-tema="digital"] .obra-marco {
   background: #04070A;
   box-shadow: 0 0 0 1px #7DA7C4, 0 0 24px rgba(125, 167, 196, .4);
 }
 
 /* ---- Sala V · ESTILO LIBRE: taller, pared crema con manchas, marcos irregulares ---- */
-.sala[data-sala="libre"], .umbral[data-sala="libre"] {
+.sala[data-tema="libre"], .umbral[data-tema="libre"] {
   --sala-texto: #1C1C1B;
   --sala-muted: #333331;
   --sala-linea: rgba(28, 28, 27, .35);
@@ -964,7 +964,7 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #E8A04A;
   --sala-jamba-texto: #1C1C1B;
 }
-.sala[data-sala="libre"] {
+.sala[data-tema="libre"] {
   background:
     radial-gradient(circle at 16% 20%, rgba(239, 228, 138, .95) 0 8%, rgba(239, 228, 138, 0) 20%),
     radial-gradient(circle at 80% 28%, rgba(125, 167, 196, .3) 0 10%, rgba(125, 167, 196, 0) 24%),
@@ -972,25 +972,25 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
     radial-gradient(circle at 34% 66%, rgba(127, 163, 90, .28) 0 7%, rgba(127, 163, 90, 0) 18%),
     #F3EEDB;
 }
-.sala[data-sala="libre"]::before {
+.sala[data-tema="libre"]::before {
   background-image: linear-gradient(115deg, transparent 0 46%, rgba(255, 255, 255, .35) 50%, transparent 54%);
   background-size: 260px 260px;
 }
-.sala[data-sala="libre"]::after {
+.sala[data-tema="libre"]::after {
   background: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, .3) 0 1px, transparent 2px) 0 0 / 14px 14px, #CFC6AC;
   border-top: 8px solid #1C1C1B;
 }
-.sala[data-sala="libre"] .obra-marco {
+.sala[data-tema="libre"] .obra-marco {
   background: #FFFDF6;
   border-radius: 3px 14px 4px 12px;
   box-shadow: 0 0 0 3px #E8A04A, 0 30px 40px -24px rgba(28, 28, 27, .55);
 }
-.sala[data-sala="libre"] .obra:nth-child(3n+1) .obra-marco { rotate: -.8deg; }
-.sala[data-sala="libre"] .obra:nth-child(3n+2) .obra-marco { rotate: .6deg; }
-.sala[data-sala="libre"] .obra:nth-child(3n) .obra-marco { rotate: -.3deg; }
+.sala[data-tema="libre"] .obra:nth-child(3n+1) .obra-marco { rotate: -.8deg; }
+.sala[data-tema="libre"] .obra:nth-child(3n+2) .obra-marco { rotate: .6deg; }
+.sala[data-tema="libre"] .obra:nth-child(3n) .obra-marco { rotate: -.3deg; }
 
 /* ---- Sala VI · TEXTILES: índigo, trama de tela, pespunte en los marcos ---- */
-.sala[data-sala="textiles"], .umbral[data-sala="textiles"] {
+.sala[data-tema="textiles"], .umbral[data-tema="textiles"] {
   --sala-texto: #F3EEDF;
   --sala-muted: #D2DBEE;
   --sala-linea: rgba(233, 196, 106, .5);
@@ -999,17 +999,17 @@ html .sala .cedula { color: var(--sala-texto); border-color: var(--sala-linea); 
   --sala-jamba: #0F1A2E;
   --sala-jamba-texto: #E9C46A;
 }
-.sala[data-sala="textiles"] { background: linear-gradient(180deg, #24406A 0%, #1A2E52 100%); }
-.sala[data-sala="textiles"]::before {
+.sala[data-tema="textiles"] { background: linear-gradient(180deg, #24406A 0%, #1A2E52 100%); }
+.sala[data-tema="textiles"]::before {
   background-image:
     repeating-linear-gradient(0deg, rgba(255, 255, 255, .05) 0 1px, transparent 1px 5px),
     repeating-linear-gradient(90deg, rgba(0, 0, 0, .16) 0 1px, transparent 1px 5px);
 }
-.sala[data-sala="textiles"]::after {
+.sala[data-tema="textiles"]::after {
   background: repeating-linear-gradient(90deg, rgba(255, 255, 255, .06) 0 2px, transparent 2px 22px), #14223D;
   border-top: 6px solid #0E182B;
 }
-.sala[data-sala="textiles"] .obra-marco {
+.sala[data-tema="textiles"] .obra-marco {
   background: #2F4D7E;
   box-shadow: 0 30px 50px -28px rgba(0, 0, 0, .8);
   outline: 2px dashed #E9C46A;     /* pespunte */
@@ -1269,12 +1269,12 @@ html { --cab-h: 104px; }
 .bicho:focus-visible .bicho-aviso { opacity: 1; }
 .bicho:hover .bicho-cuerpo { scale: 1.25; }
 /* Cada sala lo esconde en un sitio distinto y camina a su manera */
-#sala-mascotas   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  }
-#sala-naturaleza .bicho { --bx: 62%; --by: 7%;  --br: -25deg; }
-#sala-replicas   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; }
-#sala-digital    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; }
-#sala-libre      .bicho { --bx: 29%; --by: 3%;  --br: 35deg; }
-#sala-textiles   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; }
+#galeria .sala[data-tema="mascotas"]   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  }
+#galeria .sala[data-tema="naturaleza"] .bicho { --bx: 62%; --by: 7%;  --br: -25deg; }
+#galeria .sala[data-tema="replicas"]   .bicho { --bx: 38%; --by: 2%;  --br: 100deg; }
+#galeria .sala[data-tema="digital"]    .bicho { --bx: 71%; --by: 5%;  --br: -80deg; }
+#galeria .sala[data-tema="libre"]      .bicho { --bx: 29%; --by: 3%;  --br: 35deg; }
+#galeria .sala[data-tema="textiles"]   .bicho { --bx: 82%; --by: 3%;  --br: -50deg; }
 @keyframes bicho-pata {
   0%, 100% { transform: rotate(-9deg); }
   50% { transform: rotate(9deg); }
@@ -1286,7 +1286,7 @@ html { --cab-h: 104px; }
 }
 /* Teléfono de lado: casi no hay suelo, el escarabajo va más pequeño y pegado abajo */
 @media (max-height: 500px) {
-  .bicho, #sala-replicas .bicho, #sala-libre .bicho { width: 34px; height: 34px; bottom: 0; }
+  .bicho, #galeria .sala[data-tema="replicas"] .bicho, #galeria .sala[data-tema="libre"] .bicho { width: 34px; height: 34px; bottom: 0; }
   .bicho-cuerpo { width: 20px; height: 24px; }
 }
 

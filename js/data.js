@@ -34,7 +34,7 @@ const ARTISTA = {
 
 // Salas en orden de recorrido. El subtítulo de MASCOTAS viene del portafolio;
 // el de las demás salas es provisional.
-const SALAS = [
+let SALAS = [
   { id: 'mascotas',   nombre: 'MASCOTAS',     sub: 'CUADROS / LLAVEROS' },
   { id: 'naturaleza', nombre: 'NATURALEZA',   sub: 'PAISAJE Y FLORA' },
   { id: 'replicas',   nombre: 'RÉPLICAS',     sub: 'HOMENAJE A GRANDES MAESTROS' },
@@ -43,7 +43,7 @@ const SALAS = [
   { id: 'textiles',   nombre: 'TEXTILES',     sub: 'INTERVENCIONES EN PRENDAS' },
 ];
 
-const OBRAS = [
+let OBRAS = [
   // ---- MASCOTAS ----
   {
     id: 'mascotas-husky',

@@ -62,6 +62,7 @@
       sec.className = 'sala';
       sec.id = 'sala-' + sala.id;
       sec.dataset.sala = sala.id;
+      sec.dataset.tema = sala.tema || sala.id;   // estilo visual: varias salas pueden compartirlo
       sec.setAttribute('aria-labelledby', 'titulo-' + sala.id);
       sec.innerHTML = `
         <header class="sala-cabecera">
@@ -117,6 +118,7 @@
       const umbral = document.createElement('div');
       umbral.className = 'umbral';
       umbral.dataset.sala = sala.id;
+      umbral.dataset.tema = sec.dataset.tema;
       umbral.setAttribute('aria-hidden', 'true');
       umbral.innerHTML = `<span class="umbral-rotulo">Sala ${['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][si] || si + 1}</span>`;
       frag.appendChild(umbral);
@@ -384,7 +386,9 @@
     } else {
       salaActual = mejor >= 0 && !enContacto ? elObras[mejor].closest('.sala').dataset.sala : undefined;
     }
-    if (salaActual) { if (html.dataset.salaActiva !== salaActual) html.dataset.salaActiva = salaActual; }
+    const info = salaActual && SALAS.find(x => x.id === salaActual);
+    const tema = info ? info.tema || info.id : '';
+    if (tema) { if (html.dataset.salaActiva !== tema) html.dataset.salaActiva = tema; }
     else if ('salaActiva' in html.dataset) delete html.dataset.salaActiva;
 
     // Progreso: en el carrusel, el avance de la pista; en el resto, el scroll de la página
