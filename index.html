@@ -39,6 +39,21 @@
     </div>
   </section>
 
+  <!-- Bienvenida: presenta las salas antes de empezar el recorrido -->
+  <dialog class="intro" id="intro" aria-labelledby="intro-titulo">
+    <div class="intro-contenido">
+      <p class="intro-antes">Estás entrando a la galería</p>
+      <h2 class="intro-titulo" id="intro-titulo"></h2>
+      <ol class="intro-salas" id="intro-salas"></ol>
+      <div class="intro-final">
+        <p class="intro-guia" id="intro-guia"></p>
+        <p class="intro-pista">Toca una obra para verla de cerca.</p>
+        <p class="intro-aviso"><img src="img/icono.png" alt="" width="34" height="34">Por favor, no intenten atrapar al escarabajo.</p>
+        <button class="btn btn-primario" id="intro-comenzar" type="button" autofocus>Comenzar el recorrido</button>
+      </div>
+    </div>
+  </dialog>
+
   <main class="galeria" id="galeria" tabindex="-1" aria-label="Galería de obras">
     <!-- Fondo decorativo: el escarabajo repetido, muy tenue (textura CSS, sin alt) -->
     <div class="capa-fondo" aria-hidden="true"></div>
@@ -57,7 +72,10 @@
       </section>
     </div>
     <!-- Móvil: aviso para caminar por el carrusel (se oculta solo) -->
-    <p class="deslizar-aviso" id="deslizar-aviso">Desliza para caminar</p>
+    <div class="deslizar-aviso" id="deslizar-aviso" role="status" hidden>
+      <span class="deslizar-gesto" aria-hidden="true"><span class="deslizar-flechas">‹‹‹</span><span class="deslizar-dedo"></span></span>
+      Desliza hacia la izquierda para caminar
+    </div>
   </main>
 
   <!-- Visor de obra (lightbox) -->

@@ -68,6 +68,7 @@
         <header class="sala-cabecera">
           <h2 class="sala-titulo" id="titulo-${sala.id}" tabindex="-1">${escapar(sala.nombre)}</h2>
           <p class="sala-sub">${escapar(sala.sub)}</p>
+          <p class="sala-info">Sala ${si + 1} de ${SALAS.length} · ${OBRAS.filter(o => o.sala === sala.id).length} ${OBRAS.filter(o => o.sala === sala.id).length === 1 ? 'obra' : 'obras'}</p>
         </header>
         <div class="sala-obras"></div>`;
       const contenedor = $('.sala-obras', sec);
@@ -231,12 +232,44 @@
     btn.addEventListener('click', () => {
       if (entrada.dataset.saliendo) return;
       entrada.dataset.saliendo = '1';
-      if (!tieneGSAP || reduceMQ.matches) { fin(); return; }
-      gsap.timeline({ onComplete: fin })
-        .to(entrada.querySelector('.entrada-contenido'), { opacity: 0, y: -30, duration: 0.6, ease: 'power2.in' }, 0)
-        // Dos mitades que se retiran hacia los costados: la cortina se abre
-        .to(entrada, { clipPath: 'inset(0% 50% 0% 50%)', duration: 1.4, ease: 'power3.inOut' }, 0.1);
+      abrirIntro(fin);
     });
+  }
+
+  // Bienvenida con las salas como puertas; la galería queda lista detrás
+  function abrirIntro(prepararGaleria) {
+    const intro = $('#intro');
+    if (!intro.showModal) { prepararGaleria(); mostrarGuia(); return; }
+    const salas = SALAS.filter(s => OBRAS.some(o => o.sala === s.id));
+    $('#intro-titulo').textContent = salas.length === 1 ? 'Una sala por recorrer' : `Un museo con ${salas.length} salas`;
+    $('#intro-salas').innerHTML = salas.map((s, i) => {
+      const n = OBRAS.filter(o => o.sala === s.id).length;
+      return `<li class="puerta" data-color="${escapar(s.tema || s.id)}" style="--i:${i}">
+        <span class="puerta-numero">Sala ${i + 1}</span>
+        <span class="puerta-nombre">${escapar(s.nombre)}</span>
+        <span class="puerta-obras">${n} ${n === 1 ? 'obra' : 'obras'}</span>
+      </li>`;
+    }).join('');
+    intro.style.setProperty('--total', salas.length);
+    $('#intro-guia').textContent = movil()
+      ? '← Desliza hacia la izquierda para pasar de sala en sala'
+      : 'Baja con la rueda o el trackpad ↓ para caminar de sala en sala';
+
+    const salir = () => {
+      if (intro.classList.contains('saliendo')) return;
+      intro.classList.add('saliendo');
+      setTimeout(() => {
+        intro.close();
+        $('#galeria').focus({ preventScroll: true });
+        mostrarGuia();
+      }, reduceMQ.matches ? 0 : 650);
+    };
+    $('#intro-comenzar').addEventListener('click', salir);
+    intro.addEventListener('cancel', e => { e.preventDefault(); salir(); });
+
+    intro.showModal();
+    // La portada se retira cuando la bienvenida ya la cubre
+    setTimeout(prepararGaleria, reduceMQ.matches ? 0 : 450);
   }
 
   /* ---------------------------------------------------------------
@@ -882,12 +915,18 @@
   /* ---------------------------------------------------------------
      7b. Móvil: aviso «Desliza para caminar» y altura real de la cabecera
      --------------------------------------------------------------- */
-  // Desaparece al primer deslizamiento o a los 6 s
-  function iniciarAvisoDeslizar() {
+  // En móvil, tras la bienvenida: se queda hasta que la persona desliza
+  function mostrarGuia() {
     const aviso = $('#deslizar-aviso');
-    if (!aviso) return;
-    setTimeout(() => { aviso.hidden = true; }, 6000);
-    $('#pista').addEventListener('scroll', () => { aviso.hidden = true; }, { once: true, passive: true });
+    const pista = $('#pista');
+    if (!aviso || !movil()) return;
+    aviso.hidden = false;
+    const ocultar = () => {
+      if (pista.scrollLeft < 40) return;
+      aviso.hidden = true;
+      pista.removeEventListener('scroll', ocultar);
+    };
+    pista.addEventListener('scroll', ocultar, { passive: true });
   }
 
   // La cabecera puede ocupar una o dos filas: el carrusel empieza justo debajo
@@ -911,7 +950,6 @@
     iniciarVisor();
     iniciarLinterna();
     iniciarCursor();
-    iniciarAvisoDeslizar();
     aplicarModo();
 
     onChange(horizontalMQ, aplicarModo);
