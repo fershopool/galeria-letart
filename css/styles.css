@@ -1456,8 +1456,12 @@ html:has(.intro[open]) { overflow: hidden; }
   .puerta-nombre { font-size: 14px; }
   .intro-pista { display: none; }
 }
+/* Con «reducir movimiento»: sin desplazamientos ni zoom, pero las salas aparecen una a una */
 @media (prefers-reduced-motion: reduce) {
-  .intro, .intro * { animation: none !important; }
+  /* Solo opacidad; hace falta !important para ganar a la regla general de arriba */
+  .intro .puerta { animation: intro-llega .6s ease both !important; animation-delay: calc(.5s + var(--i) * .22s) !important; }
+  .intro .intro-antes, .intro .intro-titulo { animation: intro-llega .6s .2s ease both !important; }
+  .intro .intro-final { animation: intro-llega .6s ease both !important; animation-delay: calc(.7s + var(--total) * .22s) !important; }
 }
 
 /* ---------- Diseños de sala adicionales ---------- */
