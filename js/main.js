@@ -236,6 +236,22 @@
     });
   }
 
+  // Cada puerta deja ver su sala: copia la pared, el dibujo, el suelo y el marco ya definidos en CSS
+  function vestirPuerta(puerta) {
+    const sala = $$('.sala').find(s => s.dataset.sala === puerta.dataset.sala);
+    if (!sala) return;
+    const copiar = (destino, estilo) => ['backgroundColor', 'backgroundImage', 'backgroundSize', 'backgroundPosition', 'backgroundRepeat']
+      .forEach(p => { $(destino, puerta).style[p] = estilo[p]; });
+    copiar('.vano', getComputedStyle(sala));
+    copiar('.vano-dibujo', getComputedStyle(sala, '::before'));
+    const suelo = getComputedStyle(sala, '::after');
+    copiar('.vano-suelo', suelo);
+    $('.vano-suelo', puerta).style.borderTopColor = suelo.borderTopColor;
+    const marco = $('.obra-marco', sala);
+    if (marco) copiar('.vano-cuadro', getComputedStyle(marco));
+    puerta.style.setProperty('--luz', getComputedStyle(sala).getPropertyValue('--sala-cartela'));
+  }
+
   // Bienvenida con las salas como puertas; la galería queda lista detrás
   function abrirIntro(prepararGaleria) {
     const intro = $('#intro');
@@ -243,13 +259,20 @@
     const salas = SALAS.filter(s => OBRAS.some(o => o.sala === s.id));
     $('#intro-titulo').textContent = salas.length === 1 ? 'Una sala por recorrer' : `Un museo con ${salas.length} salas`;
     $('#intro-salas').innerHTML = salas.map((s, i) => {
-      const n = OBRAS.filter(o => o.sala === s.id).length;
-      return `<li class="puerta" data-color="${escapar(s.tema || s.id)}" style="--i:${i}">
-        <span class="puerta-numero">Sala ${i + 1}</span>
-        <span class="puerta-nombre">${escapar(s.nombre)}</span>
-        <span class="puerta-obras">${n} ${n === 1 ? 'obra' : 'obras'}</span>
+      const obras = OBRAS.filter(o => o.sala === s.id);
+      return `<li class="puerta" data-sala="${escapar(s.id)}" style="--i:${i}">
+        <span class="puerta-arco" aria-hidden="true">
+          <span class="vano"><span class="vano-dibujo"></span><span class="vano-suelo"></span>
+            <span class="vano-cuadro"><img src="${escapar(obras[0].img)}" alt=""></span></span>
+        </span>
+        <span class="puerta-placa">
+          <span class="puerta-numero">Sala ${i + 1}</span>
+          <span class="puerta-nombre">${escapar(s.nombre)}</span>
+          <span class="puerta-obras">${obras.length} ${obras.length === 1 ? 'obra' : 'obras'}</span>
+        </span>
       </li>`;
     }).join('');
+    $$('.puerta').forEach(vestirPuerta);
     intro.style.setProperty('--total', salas.length);
     $('#intro-guia').textContent = movil()
       ? '← Desliza hacia la izquierda para pasar de sala en sala'

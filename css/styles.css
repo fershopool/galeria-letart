@@ -1406,54 +1406,106 @@ html { --cab-h: 104px; }
   .reproductor-volumen input { width: 72px; }
 }
 
-/* ---------- Bienvenida: las salas aparecen como puertas ---------- */
-.intro { width: 100%; max-width: 100%; height: 100%; height: 100dvh; max-height: 100%; margin: 0; padding: 0; border: 0; overflow-y: auto; background: radial-gradient(ellipse 80% 60% at 50% 0%, #3a3a36, var(--tinta) 70%); color: var(--texto-claro); }
+/* ---------- Bienvenida: vestíbulo del museo con una puerta a cada sala ---------- */
+.intro { overflow-x: hidden; width: 100%; max-width: 100%; height: 100%; height: 100dvh; max-height: 100%; margin: 0; padding: 0; border: 0; overflow-y: auto; color: var(--texto-claro);
+  background:
+    radial-gradient(ellipse 70% 48% at 50% -6%, rgba(255, 226, 178, .34), rgba(255, 226, 178, 0) 70%),
+    radial-gradient(ellipse 130% 100% at 50% 45%, transparent 45%, rgba(0, 0, 0, .6) 100%),
+    /* paneles de la pared */
+    repeating-linear-gradient(90deg, rgba(255, 235, 200, .06) 0 1px, transparent 1px 10px, rgba(0, 0, 0, .22) 10px 11px, transparent 11px 180px),
+    linear-gradient(180deg, #43302B 0%, #35241F 60%, #1D1310 100%);
+  background-attachment: local;
+}
 .intro::backdrop { background: transparent; }
 .intro[open] { display: flex; animation: intro-llega .5s ease both; }
-.intro-contenido { display: grid; justify-items: center; gap: 18px; width: min(980px, 100%); margin: auto; padding: calc(28px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(28px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); text-align: center; }
+.intro-contenido { display: grid; justify-items: center; gap: 16px; width: min(1240px, 100%); margin: auto; padding: calc(24px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(24px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); text-align: center; }
 .intro p, .intro h2 { margin: 0; }
-.intro-antes { font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--naranja); animation: intro-sube .6s .3s ease both; }
-.intro-titulo { font-weight: 800; font-stretch: 62%; font-size: clamp(34px, 7vw, 68px); line-height: 1; text-transform: uppercase; animation: intro-sube .6s .45s ease both; }
-.intro-salas { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; margin: 6px 0; padding: 0; list-style: none; }
-.puerta { display: flex; flex-direction: column; justify-content: flex-end; gap: 4px; width: 122px; min-height: 164px; padding: 12px 8px; border: 1px solid rgba(245, 241, 230, .35); border-radius: 62px 62px 8px 8px; background: #8F4830; box-shadow: inset 0 0 28px rgba(0, 0, 0, .3); animation: intro-puerta .6s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.8s + var(--i) * .22s); }
-.puerta[data-color="naturaleza"] { background: #3f6b43; }
-.puerta[data-color="replicas"] { background: #6e2432; }
-.puerta[data-color="digital"] { background: #1b2147; }
-.puerta[data-color="libre"] { background: #e9e4d6; color: var(--tinta); }
-.puerta[data-color="textiles"] { background: #2c3f6e; }
-.puerta-numero { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; opacity: .85; }
-.puerta-nombre { font-weight: 800; font-stretch: 62%; font-size: 19px; line-height: 1.05; text-transform: uppercase; overflow-wrap: anywhere; }
-.puerta-obras { font-size: 12px; opacity: .85; }
-.intro-final { display: grid; justify-items: center; gap: 12px; animation: intro-sube .6s ease both; animation-delay: calc(1s + var(--total) * .22s); }
-.intro-guia { font-size: 17px; font-weight: 600; }
-.intro-pista { max-width: 46ch; font-size: 14px; color: var(--muted); }
+.intro-antes { display: flex; align-items: center; gap: 14px; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: #E9C77A; animation: intro-sube .6s .3s ease both; }
+.intro-antes::before, .intro-antes::after { content: ""; width: 48px; height: 1px; background: linear-gradient(90deg, transparent, #E9C77A, transparent); }
+.intro-titulo { font-weight: 800; font-stretch: 62%; font-size: clamp(34px, 7vw, 70px); line-height: 1; text-transform: uppercase; text-shadow: 0 6px 24px rgba(0, 0, 0, .55); animation: intro-sube .6s .45s ease both; }
+.intro-salas { position: relative; isolation: isolate; display: flex; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 22px 18px; width: 100%; margin: 14px 0 6px; padding: 0; list-style: none; }
+.puerta { --luz: #FFE2B2; position: relative; display: flex; flex-direction: column; align-items: center; width: clamp(118px, 11.5vw, 148px); animation: intro-puerta .7s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(.8s + var(--i) * .22s); }
+/* Zócalo y suelo de duela: las puertas se apoyan en él, sea cual sea el alto de la ventana */
+.intro-salas::after { content: ""; position: absolute; z-index: -2; left: calc(50% - 50vw); width: 100vw; bottom: -46px; height: 132px; -webkit-mask-image: linear-gradient(#000 50%, transparent); mask-image: linear-gradient(#000 50%, transparent);
+  background:
+    linear-gradient(180deg, #D9B871 0 2px, #1B110C 2px 10px, transparent 10px),
+    repeating-linear-gradient(90deg, transparent 0 94px, rgba(0, 0, 0, .3) 94px 96px),
+    linear-gradient(180deg, #74502F, rgba(80, 50, 30, .45) 45%, transparent); }
+/* Haz de luz sobre la puerta y su reflejo en el suelo */
+.puerta::before { content: ""; position: absolute; z-index: -1; left: -18%; right: -18%; top: -30px; height: 90px; background: radial-gradient(ellipse 50% 60% at 50% 50%, rgba(255, 232, 190, .35), transparent 70%); }
+.puerta::after { content: ""; width: 120%; height: 20px; margin-top: 4px; border-radius: 50%; background: radial-gradient(ellipse, color-mix(in srgb, var(--luz) 45%, transparent), transparent 70%); }
+/* Arco de cantera con filete dorado */
+.puerta-arco { display: block; width: 100%; aspect-ratio: 3 / 4.3; padding: 7px 7px 0; border-radius: 999px 999px 4px 4px; background: linear-gradient(100deg, #EFE3C8, #A8936E 38%, #D9C8A4 62%, #7D6A4C); box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 22px 28px -12px rgba(0, 0, 0, .75); transition: translate .25s ease, box-shadow .25s ease; }
+.puerta:hover .puerta-arco { translate: 0 -8px; box-shadow: 0 0 0 1px rgba(0, 0, 0, .4), 0 0 34px -4px var(--luz), 0 30px 30px -14px rgba(0, 0, 0, .75); }
+.vano { position: relative; display: block; height: 100%; overflow: hidden; border-radius: 999px 999px 0 0; box-shadow: 0 0 0 2px #C9A464; animation: puerta-luz .9s ease both; animation-delay: calc(1s + var(--i) * .22s); }
+/* Profundidad: sombra interior de la puerta y luz cenital de la sala */
+.vano::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(ellipse 75% 45% at 50% 20%, rgba(255, 246, 225, .3), transparent 70%); box-shadow: inset 9px 8px 16px rgba(0, 0, 0, .55), inset -5px 0 12px rgba(0, 0, 0, .3); }
+.vano-dibujo { position: absolute; inset: 0; zoom: .5; }
+.vano-suelo { position: absolute; left: 0; right: 0; bottom: 0; height: 24%; border-top: 3px solid; }
+.vano-cuadro { position: absolute; left: 50%; top: 27%; translate: -50% 0; width: 62%; padding: 3px; box-shadow: 0 10px 14px -5px rgba(0, 0, 0, .75); transition: scale .35s ease; }
+.vano-cuadro img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; }
+.puerta:hover .vano-cuadro { scale: 1.08; }
+/* Placa de la sala */
+.puerta-placa { display: grid; justify-items: center; gap: 2px; width: 94%; margin-top: 8px; position: relative; padding: 7px 4px 8px; background: linear-gradient(180deg, #FBF6EA, #E8DCC0); color: #1C1C1B; border-radius: 4px; box-shadow: inset 0 0 0 1px #C9A464, 0 8px 14px -6px rgba(0, 0, 0, .7); }
+.puerta-numero { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: #6F5526; }
+.puerta-nombre { font-weight: 800; font-stretch: 62%; font-size: 18px; line-height: 1.05; text-transform: uppercase; overflow-wrap: anywhere; }
+.puerta-obras { font-size: 11px; color: #4A4A46; }
+.intro-final { position: relative; z-index: 1; display: grid; justify-items: center; gap: 10px; animation: intro-sube .6s ease both; animation-delay: calc(1s + var(--total) * .22s); }
+.intro-guia { font-size: 17px; font-weight: 600; text-shadow: 0 2px 8px rgba(0, 0, 0, .8); }
+.intro-pista { max-width: 46ch; font-size: 14px; color: #E8DFC9; text-shadow: 0 2px 8px rgba(0, 0, 0, .8); }
+.intro .intro-aviso { background: rgba(20, 12, 8, .7); }
 .intro.saliendo { animation: intro-cruza .65s ease-in forwards; }
+@keyframes puerta-luz { from { filter: brightness(.25) saturate(.5); } }
 @keyframes intro-llega { from { opacity: 0; } }
 @keyframes intro-sube { from { opacity: 0; translate: 0 18px; } }
 @keyframes intro-puerta { from { opacity: 0; translate: 0 40px; scale: .85; } }
 @keyframes intro-cruza { to { opacity: 0; scale: 1.25; } }
 @media (max-width: 599px) {
-  .intro-contenido { gap: 12px; }
-  .puerta { width: calc(33.333% - 7px); min-height: 118px; padding: 10px 4px; }
-  .puerta-nombre { font-size: 15px; }
-  .puerta-numero { font-size: 9px; }
+  .intro-contenido { gap: 10px; }
+  .intro-antes::before, .intro-antes::after { width: 18px; }
+  .intro-salas { gap: 8px 8px; margin-top: 8px; }
+  .puerta { width: calc(33.333% - 6px); max-width: 120px; }
+  .puerta::after { height: 10px; }
+  .puerta-arco { aspect-ratio: 3 / 3.7; padding: 5px 5px 0; }
+  .puerta-nombre { font-size: 13px; }
+  .puerta-numero { font-size: 8px; }
+  .puerta-obras { font-size: 10px; }
   .intro-guia { font-size: 15px; }
   /* El botón queda a mano aunque haya muchas salas */
-  .intro-final { position: sticky; bottom: 0; width: 100%; padding: 10px 0 4px; background: var(--tinta); }
+  .intro-final { position: sticky; bottom: 0; z-index: 2; justify-self: stretch; margin: 0 -16px calc(-24px - env(safe-area-inset-bottom)); padding: 22px 16px calc(14px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, rgba(24, 15, 11, .97) 24px); }
+}
+/* Teléfonos pequeños */
+@media (max-width: 599px) and (max-height: 640px) {
+  .intro-contenido { gap: 8px; padding-top: 10px; }
+  .intro-antes { font-size: 10px; letter-spacing: .18em; }
+  .intro-titulo { font-size: 30px; }
+  .puerta-arco { aspect-ratio: 1 / 1; }
+  .vano-cuadro { top: 18%; width: 50%; }
+  .puerta-obras, .intro-pista { display: none; }
+  .intro-guia { font-size: 13px; }
+  .intro .intro-aviso { padding: 5px 10px; font-size: 12px; }
 }
 html:has(.intro[open]) { overflow: hidden; }
 /* Ventanas bajas: puertas más pequeñas para que el botón quepa sin desplazar */
-@media (max-height: 760px) and (min-height: 501px) and (min-width: 600px) {
-  .intro-contenido { gap: 12px; padding-top: 18px; padding-bottom: 18px; }
-  .intro-titulo { font-size: clamp(32px, 6vh, 48px); }
-  .puerta { width: 108px; min-height: 120px; border-radius: 54px 54px 8px 8px; }
-  .puerta-nombre { font-size: 16px; }
+@media (max-height: 820px) and (min-height: 501px) and (min-width: 600px) {
+  .intro-contenido { gap: 10px; padding-top: 14px; padding-bottom: 14px; }
+  .intro-titulo { font-size: clamp(30px, 6vh, 48px); }
+  .intro-salas { margin-top: 10px; gap: 14px; }
+  .puerta { width: clamp(96px, 15vh, 128px); }
+  .puerta::after { height: 10px; }
+  .puerta-arco { aspect-ratio: 3 / 3.9; }
+  .puerta-nombre { font-size: 15px; }
 }
 @media (max-height: 500px) {
-  .intro-contenido { gap: 8px; padding-top: 12px; padding-bottom: 12px; }
-  .intro-titulo { font-size: 30px; }
-  .puerta { width: 96px; min-height: 92px; border-radius: 40px 40px 6px 6px; }
-  .puerta-nombre { font-size: 14px; }
+  .intro-contenido { gap: 6px; padding-top: 8px; padding-bottom: 8px; }
+  .intro-titulo { font-size: 26px; }
+  .intro-salas { margin: 4px 0 0; gap: 8px; }
+  .puerta { width: 82px; }
+  .puerta::after { display: none; }
+  .puerta-arco { aspect-ratio: 1 / 1; padding: 4px 4px 0; }
+  .vano-cuadro { top: 20%; width: 50%; }
+  .puerta-numero, .puerta-obras { display: none; }
+  .puerta-nombre { font-size: 12px; }
   .intro-pista { display: none; }
 }
 /* Con «reducir movimiento»: sin desplazamientos ni zoom, pero las salas aparecen una a una */
@@ -1471,42 +1523,36 @@ html:has(.intro[open]) { overflow: hidden; }
 .sala[data-tema="oceano"]::after { background: radial-gradient(circle at 20% 60%, rgba(255,255,255,.18) 0 2px, transparent 3px) 0 0 / 26px 22px, linear-gradient(180deg, #C9B079, #8F7A4C); border-top: 6px solid #E5D3A1; }
 .sala[data-tema="oceano"] .obra-marco { background: linear-gradient(135deg, #E8F6F4, #7FB9B6 55%, #E8F6F4); box-shadow: inset 0 0 0 2px #2E6F73, 0 40px 60px -28px rgba(0,20,30,.8); }
 html[data-sala-activa="oceano"] .cabecera { --cab-fondo: #07323C; --cab-texto: #FBF6EE; --cab-muted: #BFE3E6; --cab-acento: #7FE0D4; }
-.puerta[data-color="oceano"] { background: #0F5866; color: #F5F1E6; }
 .sala[data-tema="estrellas"], .umbral[data-tema="estrellas"] { --sala-texto: #F4F1FF; --sala-muted: #CFC9F2; --sala-linea: rgba(210,200,255,.4); --sala-cartela: #FFE9A8; --sala-cartela-texto: #1A1442; --sala-jamba: #0B0826; --sala-jamba-texto: #FFE9A8; }
 .sala[data-tema="estrellas"] { background: radial-gradient(ellipse 55% 45% at 75% 10%, rgba(140,110,255,.35), rgba(140,110,255,0) 70%), linear-gradient(180deg, #1B1450 0%, #0D0A2C 100%); }
 .sala[data-tema="estrellas"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Cg fill='%23FFF3C4'%3E%3Ccircle cx='24' cy='30' r='1.6' opacity='.8'/%3E%3Ccircle cx='150' cy='54' r='1' opacity='.6'/%3E%3Ccircle cx='92' cy='118' r='1.3' opacity='.7'/%3E%3Ccircle cx='180' cy='160' r='1.8' opacity='.5'/%3E%3Ccircle cx='40' cy='176' r='1' opacity='.7'/%3E%3Cpath opacity='.35' d='M120 20l3 9 9 3-9 3-3 9-3-9-9-3 9-3z'/%3E%3Cpath opacity='.22' d='M58 70l2 6 6 2-6 2-2 6-2-6-6-2 6-2z'/%3E%3C/g%3E%3C/svg%3E"); }
 .sala[data-tema="estrellas"]::after { background: linear-gradient(180deg, rgba(160,140,255,.22), rgba(160,140,255,0) 55%), #080620; border-top: 2px solid #FFE08A; }
 .sala[data-tema="estrellas"] .obra-marco { background: #0B0826; box-shadow: 0 0 0 2px #FFE08A, 0 0 34px rgba(255,224,138,.45); }
 html[data-sala-activa="estrellas"] .cabecera { --cab-fondo: #100C30; --cab-texto: #FBF6EE; --cab-muted: #CFC9F2; --cab-acento: #FFE08A; }
-.puerta[data-color="estrellas"] { background: #221A5E; color: #F5F1E6; }
 .sala[data-tema="mexicano"], .umbral[data-tema="mexicano"] { --sala-texto: #FFF6EC; --sala-muted: #FFE0EF; --sala-linea: rgba(255,225,150,.55); --sala-cartela: #FFD23F; --sala-cartela-texto: #4A0A2C; --sala-jamba: #12706B; --sala-jamba-texto: #FFF1D0; }
 .sala[data-tema="mexicano"] { background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,190,220,.3), rgba(255,190,220,0) 70%), linear-gradient(180deg, #C4186F 0%, #9C0F57 100%); }
 .sala[data-tema="mexicano"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='%23FFD23F' fill-opacity='.16'%3E%3Cpath d='M75 38l12 25 25 12-25 12-12 25-12-25-25-12 25-12z'/%3E%3Ccircle cx='75' cy='75' r='6' fill='%2312706B' fill-opacity='.5'/%3E%3Ccircle cx='0' cy='0' r='9'/%3E%3Ccircle cx='150' cy='0' r='9'/%3E%3Ccircle cx='0' cy='150' r='9'/%3E%3Ccircle cx='150' cy='150' r='9'/%3E%3C/g%3E%3C/svg%3E"); }
 .sala[data-tema="mexicano"]::after { background: repeating-conic-gradient(#12706B 0 25%, #0E5752 0 50%) 0 0 / 56px 56px; border-top: 10px solid #FFD23F; }
 .sala[data-tema="mexicano"] .obra-marco { background: repeating-linear-gradient(45deg, #FFD23F 0 8px, #12706B 8px 16px, #F46A1F 16px 24px); box-shadow: 0 40px 60px -28px rgba(50,0,25,.8); }
 html[data-sala-activa="mexicano"] .cabecera { --cab-fondo: #7C0F4A; --cab-texto: #FBF6EE; --cab-muted: #FFE0EF; --cab-acento: #FFD23F; }
-.puerta[data-color="mexicano"] { background: #B01463; color: #F5F1E6; }
 .sala[data-tema="blanca"], .umbral[data-tema="blanca"] { --sala-texto: #1C1C1B; --sala-muted: #4A4A46; --sala-linea: rgba(28,28,27,.25); --sala-cartela: #1C1C1B; --sala-cartela-texto: #FFFFFF; --sala-jamba: #D9D6CD; --sala-jamba-texto: #1C1C1B; }
 .sala[data-tema="blanca"] { background: radial-gradient(ellipse 60% 55% at 50% 0%, #FFFFFF, rgba(255,255,255,0) 75%), linear-gradient(180deg, #F4F3EF 0%, #E4E2DB 100%); }
 .sala[data-tema="blanca"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cpath d='M0 .5H240' stroke='%23000' stroke-opacity='.05'/%3E%3C/svg%3E"); }
 .sala[data-tema="blanca"]::after { background: repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 120px), linear-gradient(180deg, #B9A689, #98856A); border-top: 8px solid #FFFFFF; }
 .sala[data-tema="blanca"] .obra-marco { background: #1C1C1B; box-shadow: 0 34px 44px -26px rgba(0,0,0,.45); }
 html[data-sala-activa="blanca"] .cabecera { --cab-fondo: #FFFFFF; --cab-texto: #1C1C1B; --cab-muted: #4A4A46; --cab-acento: #B5482B; }
-.puerta[data-color="blanca"] { background: #F4F3EF; color: #1C1C1B; }
 .sala[data-tema="atardecer"], .umbral[data-tema="atardecer"] { --sala-texto: #FFF8EE; --sala-muted: #FFE3CC; --sala-linea: rgba(255,235,210,.5); --sala-cartela: #FFE2B0; --sala-cartela-texto: #4A1B3A; --sala-jamba: #3A1535; --sala-jamba-texto: #FFD9A0; }
 .sala[data-tema="atardecer"] { background: radial-gradient(circle at 78% 66%, rgba(255,225,150,.85) 0 6%, rgba(255,190,110,.3) 14%, rgba(255,190,110,0) 30%), linear-gradient(180deg, #5B2A6B 0%, #B8456A 48%, #E8804A 100%); }
 .sala[data-tema="atardecer"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='%23FFF0DC' stroke-opacity='.16' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M30 60q12-12 24 0q12-12 24 0'/%3E%3Cpath d='M160 150q9-9 18 0q9-9 18 0'/%3E%3C/g%3E%3C/svg%3E"); }
 .sala[data-tema="atardecer"]::after { background: linear-gradient(180deg, #4A1F4E, #22102B); border-top: 4px solid #FFC76B; }
 .sala[data-tema="atardecer"] .obra-marco { background: #FFF1DE; box-shadow: inset 0 0 0 1px #E2A86A, 0 40px 60px -28px rgba(40,5,40,.75); }
 html[data-sala-activa="atardecer"] .cabecera { --cab-fondo: #4A1F4E; --cab-texto: #FBF6EE; --cab-muted: #FFE3CC; --cab-acento: #FFC76B; }
-.puerta[data-color="atardecer"] { background: #A8466A; color: #F5F1E6; }
 .sala[data-tema="ladrillo"], .umbral[data-tema="ladrillo"] { --sala-texto: #FBF4EA; --sala-muted: #F0D9C6; --sala-linea: rgba(250,230,210,.45); --sala-cartela: #F4E8D8; --sala-cartela-texto: #3A1C12; --sala-jamba: #26211E; --sala-jamba-texto: #F2C078; }
 .sala[data-tema="ladrillo"] { background: radial-gradient(ellipse 60% 55% at 50% 0%, rgba(255,215,160,.28), rgba(255,215,160,0) 70%), linear-gradient(180deg, #8A4632 0%, #6B3223 100%); }
 .sala[data-tema="ladrillo"]::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cg stroke='%23E8CDB8' stroke-opacity='.2' stroke-width='3' fill='none'%3E%3Cpath d='M0 1.5H96M0 49.5H96M24 0V48M72 48V96'/%3E%3C/g%3E%3C/svg%3E"); }
 .sala[data-tema="ladrillo"]::after { background: repeating-linear-gradient(90deg, rgba(255,255,255,.05) 0 2px, transparent 2px 90px), #34302D; border-top: 8px solid #1E1A18; }
 .sala[data-tema="ladrillo"] .obra-marco { background: #1A1716; box-shadow: inset 0 0 0 2px #57493F, 0 40px 60px -28px rgba(0,0,0,.85); }
 html[data-sala-activa="ladrillo"] .cabecera { --cab-fondo: #2B211D; --cab-texto: #FBF6EE; --cab-muted: #F0D9C6; --cab-acento: #F2C078; }
-.puerta[data-color="ladrillo"] { background: #7C3D2B; color: #F5F1E6; }
 html[data-sala-activa="blanca"] .cursor-disco { background: var(--tinta); color: var(--crema); }
 
 /* ---------- Mejor visibilidad de cada sala ---------- */
