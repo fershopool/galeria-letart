@@ -149,7 +149,14 @@
     let quieto = false;
     let anim = null;
     // Al pillarlo (cursor, foco o dedo) se detiene para poder tocarlo
-    const parar = v => () => { quieto = v; if (anim) { if (v) anim.pause(); else anim.play(); } };
+    // Solo se reanuda lo que está en pausa: play() sobre una carrera terminada la repetía
+    // (salto atrás) y encadenaba un segundo recorrido en cada toque
+    const parar = v => () => {
+      quieto = v;
+      if (!anim) return;
+      if (v && anim.playState === 'running') anim.pause();
+      else if (!v && anim.playState === 'paused') anim.play();
+    };
     ['pointerenter', 'pointerdown', 'focus'].forEach(ev => bicho.addEventListener(ev, parar(true)));
     ['pointerleave', 'pointercancel', 'blur'].forEach(ev => bicho.addEventListener(ev, parar(false)));
 

@@ -1280,9 +1280,12 @@ html { --cab-h: 104px; }
   pointer-events: none;
   transition: opacity .2s ease;
 }
-.bicho:hover .bicho-aviso,
 .bicho:focus-visible .bicho-aviso { opacity: 1; }
-.bicho:hover .bicho-cuerpo { scale: 1.25; }
+/* Solo con ratón: en el teléfono el :hover se queda pegado después de tocar */
+@media (hover: hover) {
+  .bicho:hover .bicho-aviso { opacity: 1; }
+  .bicho:hover .bicho-cuerpo { scale: 1.25; animation-play-state: paused; }
+}
 /* Cada sala lo esconde en un sitio distinto y camina a su manera */
 #galeria .sala[data-tema="mascotas"]   .bicho { --bx: 46%; --by: 4%;  --br: 70deg;  }
 #galeria .sala[data-tema="naturaleza"] .bicho { --bx: 62%; --by: 7%;  --br: -25deg; }
@@ -1295,7 +1298,7 @@ html { --cab-h: 104px; }
   50% { transform: rotate(9deg); }
 }
 /* Al pillarlo (cursor, foco o dedo) se queda quieto para poder tocarlo */
-.bicho:hover .bicho-cuerpo, .bicho:focus-visible .bicho-cuerpo, .bicho:active .bicho-cuerpo { animation-play-state: paused; }
+.bicho:focus-visible .bicho-cuerpo, .bicho:active .bicho-cuerpo { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
   .bicho, .bicho-cuerpo { animation: none; }
 }

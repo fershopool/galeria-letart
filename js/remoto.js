@@ -43,6 +43,6 @@
     try { await cargar(); } catch (e) { console.warn('Galería sin Supabase:', e.message); }
   }
   const s = document.createElement('script');
-  s.src = 'js/main.js?v=8';   // subir el número al publicar cambios (también en index.html)
+  s.src = 'js/main.js?v=9';   // subir el número al publicar cambios (también en index.html)
   document.body.appendChild(s);
 })();
